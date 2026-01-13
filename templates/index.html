@@ -13,7 +13,9 @@
     You're signed in as: {{ session.username }}
   </p>
   <p>
-    <a href="/logout">Sign out</a>
+    <form action="/logout" method="get">
+      <input type="submit" value="Sign out" />
+    </form>
   </p>
   {% else %}
   <form action="/login" method="post">

@@ -21,11 +21,13 @@ def create():
     password1 = request.form["password1"]
     password2 = request.form["password2"]
 
+    error_timer = "<script>setTimeout(function(){ window.location.href = '/register'; }, 2000);</script>"
+
     if username == "" or password1 == "" or password2 == "":
-        return "ERROR: All fields are required!"
+        return "ERROR: All fields are required!" + error_timer
 
     if len(username) < 4 or len(username) > 20:
-        return "ERROR: Username must be between 4 and 20 characters!"
+        return "ERROR: Username must be between 4 and 20 characters!" + error_timer
 
     has_letter = False
     has_number = False
@@ -40,41 +42,48 @@ def create():
             break
 
     if not has_letter or not has_number or len(password1) < 6:
-        return "ERROR: Password must be at least 6 characters long and include both letters and numbers!"
+        return "ERROR: Password must be at least 6 characters long and include both letters and numbers." + error_timer
+        
 
     if password1 != password2:
-        return "ERROR: Passwords do not match!"
-    
+        return "ERROR: Passwords do not match." + error_timer
+
     password_hash = generate_password_hash(password1)
 
     try:
         sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
         db.execute(sql, [username, password_hash])
     except sqlite3.IntegrityError:
-        return "ERROR: Username already in use!"
+        return "ERROR: Username already in use!" + error_timer
 
-    return "User created successfully! You can now log in."
+    return "User created successfully! You can now log in." + error_timer
 
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form["username"]
     password = request.form["password"]
+    
+    errormsg =  "Invalid username or password." \
+        "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
 
-    if username == "" or password == "":
-        return render_template("index.html", error="Username and password are required")
+    if username == "" or password == "":   
+        return errormsg
 
-    sql = "SELECT id, password_hash FROM users WHERE username = ?"
-    user = db.execute(sql, [username]).fetchone()
+    sql = "SELECT COUNT(*) FROM users WHERE username = ?"
+    if db.query(sql, [username])[0][0] == 0:
+        return errormsg
 
-    if user is None or not check_password_hash(user["password_hash"], password):
-        return render_template("index.html", error="Invalid username or password")
+    sql = "SELECT password_hash FROM users WHERE username = ?"
+    password_hash = db.query(sql, [username])[0][0]
 
-    session["user_id"] = user["id"]
-    session["username"] = username
-    return redirect("/")
+    if check_password_hash(password_hash, password):
+        session["username"] = username
+        return redirect("/")
+    else:
+        return errormsg
 
 @app.route("/logout")
 def logout():
-    del session["user_id"]
+    del session["username"]
     return redirect("/")
     
