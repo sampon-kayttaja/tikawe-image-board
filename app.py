@@ -53,7 +53,7 @@ def create():
     except sqlite3.IntegrityError:
         return "ERROR: Username already in use!"
 
-    return "User created successfully"
+    return "User created successfully! You can now log in."
 
 @app.route("/login", methods=["POST"])
 def login():
