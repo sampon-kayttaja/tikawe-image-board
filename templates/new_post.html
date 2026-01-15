@@ -1,0 +1,43 @@
+<html>
+
+<head>
+  <title>New Post</title>
+</head>
+
+<body>
+
+  <h1><b>CREATE A NEW POST</b></h1>
+    
+  {% if session.username %}
+  <p>
+    You're signed in as: {{ session.username }}
+  </p>
+  <p>
+    <form action="/logout" method="get">
+      <input type="submit" value="Sign out" />
+    </form>
+  </p>
+  <form action="/create_post" method="post" enctype="multipart/form-data">
+    <p>
+      Title: <br />
+      <input type="text" name="title" />
+    </p>
+    <p>
+      Image: <br />
+      <input type="file" name="image" />
+    </p>
+    <p>
+      Content: <br />
+      <textarea name="content" rows="5" cols="40"></textarea>
+    </p>
+    <input type="submit" value="Create Post" />
+  </form>
+
+  {% else %}
+    <p>You must be signed in to create a new post.</p> <script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>
+  {% endif %}
+
+
+
+
+</html>

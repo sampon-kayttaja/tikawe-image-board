@@ -39,6 +39,29 @@
     </form>
 
   {% endif %}
+
+    <hr />
+
+    <h2><a href="/new_post">New Post</a></h2>
+
+    <hr />
+
+    <h2>Recent Posts</h2>
+
+    <hr />
+
+    {% for post in posts %}
+        <div>
+        <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }} by {{ post[1] }}:</a></h2></b></p>
+        {% if post[3] %}
+          <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
+        {% endif %}
+        <p>{{ post[4] }}</p>
+        <p><i>Posted at: {{ post[5] }}</i></p>
+        <hr />
+      </div>
+    {% endfor %}
+
 </body>
 
 </html>
