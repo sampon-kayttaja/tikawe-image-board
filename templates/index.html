@@ -52,16 +52,16 @@
 
     {% for post in posts %}
         <div>
-        <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }} by {{ post[1] }}:</a></h2></b></p>
         {% if post[3] %}
           <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
         {% endif %}
+        <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }}</a> by <a href="/user/{{ post[1] }}">{{ post[1] }}:</a></h2></b></p>
         <p>{{ post[4] }}</p>
-        <p><i>Posted at: {{ post[5] }}</i></p>
+        <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
         <hr />
-      </div>
+      </div
     {% endfor %}
 
-</body>
+</body> 
 
 </html>

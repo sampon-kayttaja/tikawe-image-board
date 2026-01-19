@@ -16,6 +16,10 @@
     <form action="/logout" method="get">
       <input type="submit" value="Sign out" />
     </form>
+
+    <a href="/">
+        <button type="button">Back</button>
+      </a>
   </p>
   <form action="/create_post" method="post" enctype="multipart/form-data">
     <p>
@@ -27,11 +31,21 @@
       <input type="file" name="image" />
     </p>
     <p>
-      Content: <br />
+      Post text: <br />
       <textarea name="content" rows="5" cols="40"></textarea>
     </p>
+    <input type="hidden" name="username" value="{{ session.username }}" />
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
     <input type="submit" value="Create Post" />
+
+    
   </form>
+
+  <a href="/rules">View Rules</a>
+
+</body>
+
+
 
   {% else %}
     <p>You must be signed in to create a new post.</p> <script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>

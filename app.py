@@ -1,10 +1,12 @@
+import secrets
 import sqlite3
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, url_for
+from flask import Flask, abort, jsonify, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import config
 import db
+import get_stuff
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -18,13 +20,14 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
+def check_csrf():
+    if request.form["csrf_token"] != session.get("csrf_token"):
+        abort(403)
+
 @app.route("/")
 def index():
-    posts = db.query("SELECT * FROM posts ORDER BY created_at DESC LIMIT 10")   # Fetch latest 10 posts from database. No database yet implemented.
-                                                                                # Database will have id, username, title, image_url, content, created_at fields in this order.
-                                                                                # Each post will display title, image (if image_url is not empty), content, username, created_at
-                                                                                # Each post will have a link to view comments (not implemented yet)
-                                                                                # Comment section will be its own datapage (not implemented yet)
+    posts = db.query("SELECT * FROM posts ORDER BY created_at DESC LIMIT 10")   
+                                                                                
     
     return render_template("index.html", posts=posts)
 
@@ -78,7 +81,7 @@ def create():
         sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
         db.execute(sql, [username, password_hash])
     except sqlite3.IntegrityError:
-        return "ERROR: Username already in use!" + error_timer
+        return "ERROR: Username already in use!" + "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
 
     return "User created successfully! You can now log in." + error_timer
 
@@ -109,6 +112,7 @@ def login():
 
     if check_password_hash(password_hash, password):
         session["username"] = username
+        session["csrf_token"] = secrets.token_hex(16)
         return redirect("/")
     else:
         return errormsg
@@ -116,7 +120,11 @@ def login():
 @app.route("/logout")
 def logout():
     del session["username"]
+    del session["csrf_token"]
     return redirect("/")
+
+# Fetch latest 10 posts from database. No database yet implemented.
+# Posts table has id, username, title, image_url, content, created_at fields, likes in this order.
 
 @app.route("/new_post", methods=["POST", "GET"])
 def new_post():
@@ -124,6 +132,8 @@ def new_post():
 
 @app.route("/create_post", methods=["POST"])
 def create_post():
+    check_csrf()
+
     if "username" not in session:
         return "You must be logged in to create a post." + "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
     title = request.form.get("title", "").strip()
@@ -145,7 +155,79 @@ def create_post():
         else:
             return "File type not allowed" + "<script>setTimeout(function(){ window.location.href = '/new_post'; }, 2000);</script>"
 
-    sql = "INSERT INTO posts (username, title, image_url, content, created_at) VALUES (?, ?, ?, ?, datetime('now'))"
-    db.execute(sql, [username, title, image_url, content])
+    sql = "INSERT INTO posts (username, title, image_url, content, created_at, likes) VALUES (?, ?, ?, ?, datetime('now'), ?)"
+    db.execute(sql, [username, title, image_url, content, 0])
     return redirect("/")
 
+@app.route("/rules")
+def rules():
+    return render_template("rules.html")
+
+# View a single post with its comments.
+# Comments table has id, post_id, username, content, image_url, created_at fields, likes.
+
+@app.route("/post/<int:post_id>")
+def view_post(post_id):
+    post = get_stuff.get_post(post_id)
+    if not post:
+        return "Post not found." + "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
+    comments = db.query("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC", [post_id])
+    return render_template("view_post.html", post=post, comments=comments)
+
+@app.route("/create_comment/<int:post_id>", methods=["POST"])
+def create_comment(post_id):
+    check_csrf()
+
+    content = request.form.get("content", "").strip()
+    username = session["username"]  
+
+    # Handle uploaded image if present
+    image_url = ""
+    file = request.files.get('image')
+    if file and file.filename != "":
+        if allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            upload_dir = app.config.get('UPLOAD_FOLDER')
+            os.makedirs(upload_dir, exist_ok=True)
+            filepath = os.path.join(upload_dir, filename)
+            file.save(filepath)
+            # Store a web-accessible path
+            image_url = f"/static/uploads/{filename}"
+        else:
+            return "File type not allowed" + "<script>setTimeout(function(){ window.location.href = '/post/{}'; }, 2000);</script>".format(post_id)
+
+    sql = "INSERT INTO comments (post_id, username, content, image_url, created_at, likes) VALUES (?, ?, ?, ?, datetime('now'), ?)"
+    db.execute(sql, [post_id, username, content, image_url, 0])
+    return redirect("/post/{}".format(post_id))
+
+@app.route("/like/post/<int:post_id>")
+def like_post(post_id):
+    db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [post_id])
+    current_row = db.query("SELECT * FROM posts WHERE id = ?", [post_id])
+    return redirect("/post/{}".format(current_row[0]["id"]))
+
+@app.route("/like/comment/<int:comment_id>")
+def like_comment(comment_id):
+    db.execute("UPDATE comments SET likes = likes + 1 WHERE id = ?", [comment_id])
+    current_row = db.query("SELECT * FROM comments WHERE id = ?", [comment_id])
+    return redirect("/post/{}".format(current_row[0]["post_id"]))
+
+@app.route("/delete/post/<int:post_id>", methods=["POST"])
+def delete_post(post_id):
+    db.execute("DELETE FROM posts WHERE id = ?", [post_id])
+    db.execute("DELETE FROM comments WHERE post_id = ?", [post_id])
+    return redirect("/")
+
+@app.route("/delete/comment/<int:comment_id>" , methods=["POST"])
+def delete_comment(comment_id):
+    post_id = db.query("SELECT post_id FROM comments WHERE id = ?", [comment_id])[0]["post_id"]
+    db.execute("DELETE FROM comments WHERE id = ?", [comment_id])
+    return redirect("/post/{}".format(post_id))
+
+# user profile page showing their posts
+
+@app.route("/user/<username>")
+def user_profile(username):
+    user_posts = db.execute("SELECT * FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
+
+    return render_template("view_user.html", username=username, posts=user_posts)

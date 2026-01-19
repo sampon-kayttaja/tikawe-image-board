@@ -1,0 +1,78 @@
+<html>
+<head>
+  <title>{{ post[0] }}</title>
+</head>
+
+<body>
+
+  
+  {% if post[3] %}
+    <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
+  {% endif %}
+
+  <h2>{{ post[2] }} by  <a href="/user/{{ post[1] }}">{{ post[1] }}</a> </h2> 
+  
+  <p>{{ post[4] }}</p>
+  <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
+  <form action="/like/post/{{ post[0] }}" method="get">
+    <input type="submit" value="Like" /></form>
+
+  {% if session.username == post[1] %}
+    <form action="/delete/post/{{ post[0] }}" method="post">
+      <input type="submit" value="Delete Post" />
+    </form>
+  {% endif %}
+  <hr />
+
+  <h2>Add a Comment</h2>
+
+  {% if session.username %}
+    <form action="/create_comment/{{ post[0] }}" method="post" enctype="multipart/form-data">
+      <p>
+        Comment text: <br />
+        <textarea name="content" rows="5" cols="40"></textarea>
+      </p>
+      <p>
+        Image (optional): <br />
+        <input type="file" name="image" />
+      </p>
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
+      <input type="submit" value="Add Comment" />
+    </form>
+  {% else %}
+    <p>You must be signed in to add a comment.</p>
+  {% endif %}
+
+  <hr />
+
+  <h2>Comments</h2>
+  
+  <hr />
+
+  {% for comment in comments %}
+    <div>
+        <p><b><a href="/user/{{ comment[2] }}">{{ comment[2] }}:</a></b></p>
+        {% if comment[4] %}
+        <p><img src="{{ comment[4] }}" alt="Comment Image" style="max-width:300px;"/></p>
+        {% endif %}
+        <p>{{ comment[3] }}</p>
+        <form action="/like/comment/{{ comment[0] }}" method="get">
+        <input type="submit" value="Like" /></form>
+
+        {% if session.username == comment[2] %}
+          <form action="/delete/comment/{{ comment[0] }}" method="post">
+            <input type="submit" value="Delete Comment" />
+          </form>
+        {% endif %}
+
+        <p>Likes: {{ comment[6] }} | <i>Posted at {{ comment[5] }}</i></p>
+    </div>
+  <hr />
+
+
+  {% else %}
+    <p>No comments yet.</p>
+  {% endfor %}
+
+</body>
+</html>
