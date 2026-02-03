@@ -42,15 +42,24 @@
 
     <hr />
 
-    <h2><a href="/new_post">New Post</a></h2>
+    <h2><a href="/new_post">New Post</a></h2> 
 
     <hr />
 
-    <h2>Recent Posts</h2>
+    <h2><a href="/search">Search Posts</a></h2>
 
     <hr />
 
-    {% for post in posts %}
+    <h2>Posts sorted by {{ sorted_by }} </h2> 
+
+    <form action="/sort_by" method="post">
+      <input type="submit" value="Sort by {{ 'newest' if sort_state == 'most liked' else 'most liked' }}" />
+    </form>
+
+    <hr />
+
+    {% if sorted_by == "newest" %}
+    {% for post in posts_new %}
         <div>
         {% if post[3] %}
           <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
@@ -61,6 +70,19 @@
         <hr />
       </div
     {% endfor %}
+    {% else %}
+    {% for post in posts_liked %}
+        <div>
+        {% if post[3] %}
+          <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
+        {% endif %}
+        <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }}</a> by <a href="/user/{{ post[1] }}">{{ post[1] }}:</a></h2></b></p>
+        <p>{{ post[4] }}</p>
+        <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
+        <hr />
+      </div>
+    {% endfor %}
+    {% endif %}
 
 </body> 
 

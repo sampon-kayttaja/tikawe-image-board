@@ -3,21 +3,29 @@
   <title>{{ username }}</title>
 </head>
 <body>
+  <form action="/" method="get">
+    <input type="submit" value="Back to home" />
+  </form>
 
-  <h1><b>USER: {{ username }}</b></h1>
+  <h1><b>{{ username }}</b></h1>
+
+  <h3> Likes: {{ likes }}</h3>
+  <h3> Posts made: {{ posts|length }}</h3>
+  <h3> Comments made: {{ comments }}</h3>
+
 
   <hr />
 
-  <h2> Posts made: </h2>
+  <h2> Posts by {{ username }}: </h2>
 
   <hr />
   
-    {% for post in user_posts %}
+    {% for post in posts %}
         <div>
-        <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }}</a>:</h2></b></p>
         {% if post[3] %}
             <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
         {% endif %}
+        <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }}</a>:</h2></b></p>
         <p>{{ post[4] }}</p>
         <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
         </div>

@@ -16,6 +16,9 @@ allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
+
+sort_state = "newest"
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in allowed_extensions
@@ -24,12 +27,22 @@ def check_csrf():
     if request.form["csrf_token"] != session.get("csrf_token"):
         abort(403)
 
+
+
+
+
 @app.route("/")
 def index():
-    posts = db.query("SELECT * FROM posts ORDER BY created_at DESC LIMIT 10")   
-                                                                                
-    
-    return render_template("index.html", posts=posts)
+    posts_new = db.query("SELECT * FROM posts ORDER BY created_at DESC LIMIT 10") 
+    posts_liked = db.query("SELECT * FROM posts ORDER BY likes DESC LIMIT 10")
+
+    return render_template("index.html", posts_new=posts_new, posts_liked=posts_liked, sorted_by = sort_state)
+
+@app.route("/sort_by", methods=["POST"])
+def sort_by():
+    global sort_state
+    sort_state = "newest" if sort_state == "most liked" else "most liked"
+    return redirect("/")
 
 @app.route("/register")
 def register():
@@ -123,7 +136,7 @@ def logout():
     del session["csrf_token"]
     return redirect("/")
 
-# Fetch latest 10 posts from database. No database yet implemented.
+# Fetch latest 10 posts from database.
 # Posts table has id, username, title, image_url, content, created_at fields, likes in this order.
 
 @app.route("/new_post", methods=["POST", "GET"])
@@ -200,6 +213,9 @@ def create_comment(post_id):
     db.execute(sql, [post_id, username, content, image_url, 0])
     return redirect("/post/{}".format(post_id))
 
+# Like a post or comment
+# Currently you can like multiple times. No restrictions. - To be fixed later.
+
 @app.route("/like/post/<int:post_id>")
 def like_post(post_id):
     db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [post_id])
@@ -228,6 +244,26 @@ def delete_comment(comment_id):
 
 @app.route("/user/<username>")
 def user_profile(username):
-    user_posts = db.execute("SELECT * FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
+    user_posts = db.query("SELECT * FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
+    likes_posts = user_posts[0]["likes"] if user_posts else 0
+    user_comments = db.query("SELECT * FROM comments WHERE username = ?", [username])
+    likes_comments = user_comments[0]["likes"] if user_comments else 0
+    likes = likes_posts + likes_comments
+    comments = len(user_comments)
 
-    return render_template("view_user.html", username=username, posts=user_posts)
+    return render_template("view_user.html", username=username, posts=user_posts, likes=likes, comments=comments)
+
+# search for posts
+
+@app.route("/search")
+def search():
+    return render_template("search.html")
+
+@app.route("/search_results", methods=["GET"])
+def search_results():
+    query = request.args.get("query", "").strip()
+    if query == "":
+        return redirect("/search")    
+
+    search_results = db.query("SELECT * FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC", ['%' + query + '%', '%' + query + '%'])
+    return render_template("search_results.html", query=query, results=search_results, count=len(search_results))

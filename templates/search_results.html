@@ -1,0 +1,37 @@
+<html>
+<head>
+    <title>Search Page</title>
+</head>
+<body>
+  <form action="/" method="get">
+    <input type="submit" value="Back to home" />
+  </form>
+
+
+  <h1>Search</h1>
+    <form action="/search_results" method="get">
+        <input type="text" name="query" placeholder="Enter search term">
+        <input type="submit" value="Search">
+    </form>
+
+
+<h1>Search Results for "{{ query }}" ({{ count }} results)</h1>
+
+<hr />
+{%for post in results %}
+    <div>
+        {% if post[3] %}
+          <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
+        {% endif %}
+        <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }}</a> by <a href="/user/{{ post[1] }}">{{ post[1] }}:</a></h2></b></p>
+        <p>{{ post[4] }}</p>
+        <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
+        <hr />
+    </div>
+{% endfor %}
+
+
+
+</body>
+
+</html>
