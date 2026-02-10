@@ -19,6 +19,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB limit
 
 sort_state = "newest"
 
+
+db.init_db()
+
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in allowed_extensions
@@ -26,9 +30,6 @@ def allowed_file(filename):
 def check_csrf():
     if request.form["csrf_token"] != session.get("csrf_token"):
         abort(403)
-
-
-
 
 
 @app.route("/")
@@ -56,15 +57,13 @@ def create():
 
     # Common error timer for all errors
 
-    error_timer = "<script>setTimeout(function(){ window.location.href = '/register'; }, 2000);</script>"
-
     # Username validation
 
     if username == "" or password1 == "" or password2 == "":
-        return "ERROR: All fields are required!" + error_timer
+        return "ERROR: All fields are required!"
 
     if len(username) < 4 or len(username) > 20:
-        return "ERROR: Username must be between 4 and 20 characters!" + error_timer
+        return "ERROR: Username must be between 4 and 20 characters!"
 
     # Password validation
 
@@ -81,10 +80,10 @@ def create():
             break
 
     if not has_letter or not has_number or len(password1) < 6:
-        return "ERROR: Password must be at least 6 characters long and include both letters and numbers." + error_timer
+        return "ERROR: Password must be at least 6 characters long and include both letters and numbers."
         
     if password1 != password2:
-        return "ERROR: Passwords do not match." + error_timer
+        return "ERROR: Passwords do not match."
 
     password_hash = generate_password_hash(password1)
 
@@ -94,17 +93,18 @@ def create():
         sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
         db.execute(sql, [username, password_hash])
     except sqlite3.IntegrityError:
-        return "ERROR: Username already in use!" + "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
+        return "ERROR: Username already in use!"
 
-    return "User created successfully! You can now log in." + error_timer
+    return render_template("user_created.html")
+
+
 
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form["username"]
     password = request.form["password"]
     
-    errormsg =  "Invalid username or password." \
-        "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
+    errormsg =  "Invalid username or password."
 
     # Input validation
     # Non-empty fields
@@ -148,7 +148,7 @@ def create_post():
     check_csrf()
 
     if "username" not in session:
-        return "You must be logged in to create a post." + "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
+        return "You must be logged in to create a post."
     title = request.form.get("title", "").strip()
     content = request.form.get("content", "").strip()
     username = session["username"]
@@ -166,7 +166,7 @@ def create_post():
             # Store a web-accessible path
             image_url = f"/static/uploads/{filename}"
         else:
-            return "File type not allowed" + "<script>setTimeout(function(){ window.location.href = '/new_post'; }, 2000);</script>"
+            return "File type not allowed"
 
     sql = "INSERT INTO posts (username, title, image_url, content, created_at, likes) VALUES (?, ?, ?, ?, datetime('now'), ?)"
     db.execute(sql, [username, title, image_url, content, 0])
@@ -183,7 +183,7 @@ def rules():
 def view_post(post_id):
     post = get_stuff.get_post(post_id)
     if not post:
-        return "Post not found." + "<script>setTimeout(function(){ window.location.href = '/'; }, 2000);</script>"
+        return "Post not found."
     comments = db.query("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC", [post_id])
     return render_template("view_post.html", post=post, comments=comments)
 
@@ -207,7 +207,7 @@ def create_comment(post_id):
             # Store a web-accessible path
             image_url = f"/static/uploads/{filename}"
         else:
-            return "File type not allowed" + "<script>setTimeout(function(){ window.location.href = '/post/{}'; }, 2000);</script>".format(post_id)
+            return "File type not allowed"
 
     sql = "INSERT INTO comments (post_id, username, content, image_url, created_at, likes) VALUES (?, ?, ?, ?, datetime('now'), ?)"
     db.execute(sql, [post_id, username, content, image_url, 0])
