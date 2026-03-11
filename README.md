@@ -8,3 +8,7 @@
 - The user can add an upvote on posts that they like
 - Every user has their own profile page that includes all their posts
 - The app has a counter that shows the total amount of users and posts
+
+
+
+- I started the project with the same idea in 3. period but never finished the course.
