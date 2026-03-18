@@ -1,10 +1,51 @@
 <html>
+
 <head>
-    <title>Image Board</title>
+  <title>Homepage</title>
 </head>
 
 <body>
-    <h1>Front page</h1>
-</body>
 
-</html>
+  <h1><b>HOMEPAGE</b></h1>
+    
+  {% if session.username %}
+  <p>
+    You're signed in as: {{ session.username }}
+  </p>
+  <p>
+    <form action="/logout" method="get">
+      <input type="submit" value="Sign out" />
+    </form>
+  </p>
+  {% else %}
+  <form action="/login" method="post">
+    <p>
+      Username: <br />
+      <input type="text" name="username" />
+    </p>
+    <p>
+      Password: <br />
+      <input type="password" name="password" />
+    </p>
+    <input type="submit" value="Sign in" />
+  </form>
+
+    <p>
+      Don't have an account?
+    </p>
+
+    <form action="/register" method="get">
+      <input type="submit" value="Register" />
+    </form>
+
+  {% endif %}
+
+    <hr />
+
+    <h2><a href="/new_post">New Post</a></h2> 
+
+    <hr />
+
+    <h2><a href="/search">Search Posts</a></h2>
+
+    <hr />
