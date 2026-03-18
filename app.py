@@ -195,3 +195,16 @@ def create_comment(post_id):
     sql = "INSERT INTO comments (post_id, username, content, image_url, created_at, likes) VALUES (?, ?, ?, ?, datetime('now'), ?)"
     db.execute(sql, [post_id, username, content, image_url, 0])
     return redirect("/post/{}".format(post_id))
+
+#viewing users
+
+@app.route("/user/<username>")
+def user_profile(username):
+    user_posts = db.query("SELECT * FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
+    likes_posts = user_posts[0]["likes"] if user_posts else 0
+    user_comments = db.query("SELECT * FROM comments WHERE username = ?", [username])
+    likes_comments = user_comments[0]["likes"] if user_comments else 0
+    likes = likes_posts + likes_comments
+    comments = len(user_comments)
+
+    return render_template("view_user.html", username=username, posts=user_posts, likes=likes, comments=comments)
