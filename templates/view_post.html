@@ -8,18 +8,21 @@
     <input type="submit" value="Back to home" />
   </form>
   
-  {% if post[3] %}
-    <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
-  {% endif %}
+ 
 
   <h2>{{ post[2] }} by  <a href="/user/{{ post[1] }}">{{ post[1] }}</a> </h2> 
   
+  {% if post[3] %}
+    <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
+  {% endif %} 
+
   <p>{{ post[4] }}</p>
   <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
-  <form action="/like_post/{{ post[0] }}" method="get">
+  
+  {% if session.username == post[1] %}
+    <form action="/like_post/{{ post[0] }}" method="get">
     <input type="submit" value="Like" /></form>
 
-  {% if session.username == post[1] %}
     <form action="/delete_post/{{ post[0] }}" method="post">
       <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
       <input type="submit" value="Delete Post" />
@@ -63,13 +66,18 @@
         <p><img src="{{ comment[4] }}" alt="Comment Image" style="max-width:300px;"/></p>
         {% endif %}
         <p>{{ comment[3] }}</p>
-        <form action="/like_comment/{{ comment[0] }}" method="get">
-        <input type="submit" value="Like" /></form>
 
         {% if session.username == comment[2] %}
+          <form action="/like_comment/{{ comment[0] }}" method="get">
+            <input type="submit" value="Like" /></form>
+
           <form action="/delete_comment/{{ comment[0] }}" method="post">
             <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
             <input type="submit" value="Delete Comment" />
+          </form>
+
+          <form action="/edit_comment/{{ comment[0] }}" method="get">
+            <input type="submit" value="Edit Comment" />
           </form>
         {% endif %}
 

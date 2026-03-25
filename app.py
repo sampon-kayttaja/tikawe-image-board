@@ -196,6 +196,8 @@ def create_comment(post_id):
     db.execute(sql, [post_id, username, content, image_url, 0])
     return redirect("/post/{}".format(post_id))
 
+#delete post and comment
+
 @app.route("/delete_post/<int:post_id>", methods=["POST"])
 def delete_post(post_id):
     check_csrf()
@@ -205,7 +207,6 @@ def delete_post(post_id):
     db.execute("DELETE FROM comments WHERE post_id = ?", [post_id])
     return redirect("/")
     
-
 @app.route("/delete_comment/<int:comment_id>", methods=["POST"])
 def delete_comment(comment_id): 
     check_csrf()
@@ -213,6 +214,66 @@ def delete_comment(comment_id):
     comment = get_stuff.get_comment(comment_id)
     db.execute("DELETE FROM comments WHERE id = ?", [comment_id])
     return redirect("/post/{}".format(comment[1])) 
+
+#edit posts and comments
+
+@app.route("/edit_post/<int:post_id>")
+def edit_post(post_id):
+    post = get_stuff.get_post(post_id)
+    return render_template("edit_post.html", post=post)
+
+@app.route("/update_post/<int:post_id>", methods=["POST"])
+def update_post(post_id, image_url=""):
+    check_csrf()
+
+    #handle uploaded image if present
+    image_url = ""
+    file = request.files.get('image')
+    if file and file.filename != "":
+        if allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            upload_dir = app.config.get('UPLOAD_FOLDER')
+            os.makedirs(upload_dir, exist_ok=True)
+            filepath = os.path.join(upload_dir, filename)
+            file.save(filepath)
+            #store a web-accessible path
+            image_url = f"/static/uploads/{filename}"
+        else:
+            return "File type not allowed"
+
+    title = request.form.get("title", "").strip()
+    content = request.form.get("content", "").strip()
+    db.execute("UPDATE posts SET title = ?, content = ?, image_url = ? WHERE id = ?", [title, content, image_url, post_id])
+    return redirect("/post/{}".format(post_id))
+
+@app.route("/edit_comment/<int:comment_id>")
+def edit_comment(comment_id):
+    comment = get_stuff.get_comment(comment_id)
+    return render_template("edit_comment.html", comment=comment)
+
+@app.route("/update_comment/<int:comment_id>", methods=["POST"])
+def update_comment(comment_id, image_url=""):
+    check_csrf()
+
+    #handle uploaded image if present
+    image_url = ""
+    file = request.files.get('image')
+    if file and file.filename != "":
+        if allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            upload_dir = app.config.get('UPLOAD_FOLDER')
+            os.makedirs(upload_dir, exist_ok=True)
+            filepath = os.path.join(upload_dir, filename)
+            file.save(filepath)
+            #store a web-accessible path
+            image_url = f"/static/uploads/{filename}"
+        else:
+            return "File type not allowed"
+
+    content = request.form.get("content", "").strip()
+    db.execute("UPDATE comments SET content = ?, image_url = ? WHERE id = ?", [content, image_url, comment_id])
+    comment = get_stuff.get_comment(comment_id)
+    return redirect("/post/{}".format(comment[1]))
 
 
 #viewing users
