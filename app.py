@@ -196,6 +196,25 @@ def create_comment(post_id):
     db.execute(sql, [post_id, username, content, image_url, 0])
     return redirect("/post/{}".format(post_id))
 
+@app.route("/delete_post/<int:post_id>", methods=["POST"])
+def delete_post(post_id):
+    check_csrf()
+
+    post = get_stuff.get_post(post_id)
+    db.execute("DELETE FROM posts WHERE id = ?", [post_id])
+    db.execute("DELETE FROM comments WHERE post_id = ?", [post_id])
+    return redirect("/")
+    
+
+@app.route("/delete_comment/<int:comment_id>", methods=["POST"])
+def delete_comment(comment_id): 
+    check_csrf()
+
+    comment = get_stuff.get_comment(comment_id)
+    db.execute("DELETE FROM comments WHERE id = ?", [comment_id])
+    return redirect("/post/{}".format(comment[1])) 
+
+
 #viewing users
 
 @app.route("/user/<username>")
@@ -208,3 +227,18 @@ def user_profile(username):
     comments = len(user_comments)
 
     return render_template("view_user.html", username=username, posts=user_posts, likes=likes, comments=comments)
+
+#searching
+
+@app.route("/search")
+def search():
+    return render_template("search.html")
+
+@app.route("/search_results", methods=["GET"])
+def search_results():
+    query = request.args.get("query", "").strip()
+    if query == "":
+        return redirect("/search")    
+
+    search_results = db.query("SELECT * FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC", ['%' + query + '%', '%' + query + '%'])
+    return render_template("search_results.html", query=query, results=search_results, count=len(search_results))

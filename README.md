@@ -12,3 +12,18 @@
 
 
 - I started the project with the same idea in 3. period but never finished the course.
+
+
+
+Testing the app:
+
+- open the tikawe-image-board directory in terminal with "cd tikawe-image-board"
+- then run the following commands
+    "python3 -m venv venv"
+    "pip install flask"
+    "source bin/venv/activate"
+    "flask run"
+- now the app is running and you can open it in browser
+- when you're done with testing run the command "deactivate"
+
+Thank you for testing my app!
