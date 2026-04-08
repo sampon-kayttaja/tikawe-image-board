@@ -275,6 +275,22 @@ def update_comment(comment_id, image_url=""):
     comment = get_stuff.get_comment(comment_id)
     return redirect("/post/{}".format(comment[1]))
 
+#liking posts and comments
+
+@app.route("/like_post/<int:post_id>", methods=["GET"])
+def like_post(post_id):
+    if "username" not in session:
+        return "You must be logged in to like a post."  
+    db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [post_id])
+    return redirect("/post/{}".format(post_id))
+
+@app.route("/like_comment/<int:comment_id>", methods=["GET"])
+def like_comment(comment_id):
+    if "username" not in session:
+        return "You must be logged in to like a comment."
+    db.execute("UPDATE comments SET likes = likes + 1 WHERE id = ?", [comment_id])
+    comment = get_stuff.get_comment(comment_id)
+    return redirect("/post/{}".format(comment[1]))
 
 #viewing users
 
@@ -289,7 +305,7 @@ def user_profile(username):
 
     return render_template("view_user.html", username=username, posts=user_posts, likes=likes, comments=comments)
 
-#searching
+#searching posts
 
 @app.route("/search")
 def search():
