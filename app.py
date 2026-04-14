@@ -27,8 +27,25 @@ def check_csrf():
 
 @app.route("/")
 def index():
-    posts = db.query("SELECT * FROM posts ORDER BY created_at DESC LIMIT 10") 
-    return render_template("index.html", posts=posts)
+    posts_by_new = db.query("SELECT * FROM posts ORDER BY created_at DESC LIMIT 10")
+    posts_by_old = db.query("SELECT * FROM posts ORDER BY created_at ASC LIMIT 10")
+    posts_by_likes = db.query("SELECT * FROM posts ORDER BY likes DESC LIMIT 10")
+    return render_template("index.html", posts_by_new=posts_by_new, posts_by_old=posts_by_old, posts_by_likes=posts_by_likes, sortstate=sortstate)
+
+#sort posts by time or likes
+
+sortstate = "Newest"
+
+@app.route("/change_sort", methods=["GET"])
+def sort_change():
+    global sortstate
+    if sortstate == "Newest":
+        sortstate = "Oldest"
+    elif sortstate == "Oldest":
+        sortstate = "Most Liked"
+    else:
+        sortstate = "Newest"
+    return redirect("/")
 
 #user creation and login/logout
 
@@ -296,14 +313,30 @@ def like_comment(comment_id):
 
 @app.route("/user/<username>")
 def user_profile(username):
-    user_posts = db.query("SELECT * FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
-    likes_posts = user_posts[0]["likes"] if user_posts else 0
+    user_posts_by_new = db.query("SELECT * FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
+    user_posts_by_old = db.query("SELECT * FROM posts WHERE username = ? ORDER BY created_at ASC", [username])
+    user_posts_by_likes = db.query("SELECT * FROM posts WHERE username = ? ORDER BY likes DESC", [username])
+    likes_posts = user_posts_by_new[0]["likes"] if user_posts_by_new else 0
     user_comments = db.query("SELECT * FROM comments WHERE username = ?", [username])
     likes_comments = user_comments[0]["likes"] if user_comments else 0
     likes = likes_posts + likes_comments
     comments = len(user_comments)
 
-    return render_template("view_user.html", username=username, posts=user_posts, likes=likes, comments=comments)
+    return render_template("view_user.html", username=username, posts_by_new=user_posts_by_new, posts_by_old=user_posts_by_old, posts_by_likes=user_posts_by_likes, likes=likes, comments=comments, sortstate=sortstate_user)
+
+
+sortstate_user = "Newest"
+
+@app.route("/change_sort_user/<username>", methods=["GET"])
+def sort_change_user(username):
+    global sortstate_user
+    if sortstate_user == "Newest":
+        sortstate_user = "Oldest"
+    elif sortstate_user == "Oldest":
+        sortstate_user = "Most Liked"
+    else:
+        sortstate_user = "Newest"
+    return redirect("/user/{}".format(username))
 
 #searching posts
 

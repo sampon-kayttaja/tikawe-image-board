@@ -10,7 +10,7 @@
     
   {% if session.username %}
   <p>
-    You're signed in as: {{ session.username }}
+    You're signed in as: <a href="/user/{{ session.username }}">{{ session.username }}</a>
   </p>
   <p>
     <form action="/logout" method="get">
@@ -51,7 +51,42 @@
         <hr />
 
 
-    {% for post in posts %}
+    <div>
+      <h2>Posts By: {{ sortstate }}</h2>
+      <form action="/change_sort" method="get">
+        <input type="submit" name="sort" value="change" />
+      </form>
+    </div>
+
+    {% if sortstate == "Newest" %}
+      {% for post in posts_by_new %}
+          <div>
+          {% if post[3] %}
+            <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
+          {% endif %}
+          <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }}</a> by <a href="/user/{{ post[1] }}">{{ post[1] }}:</a></h2></b></p>
+        
+          <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
+          <hr />
+        </div
+      {% endfor %}
+
+    {% elif sortstate == "Oldest" %}
+      {% for post in posts_by_old %}
+          <div>
+          {% if post[3] %}
+            <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
+          {% endif %}
+          <p><b><h2><a href="/post/{{ post[0] }}">{{ post[2] }}</a> by <a href="/user/{{ post[1] }}">{{ post[1] }}:</a></h2></b></p>
+        
+          <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
+          <hr />
+        </div
+      {% endfor %}
+
+    {% else %}
+
+    {% for post in posts_by_likes %}
         <div>
         {% if post[3] %}
           <p><img src="{{ post[3] }}" alt="Post Image" style="max-width:500px;"/></p>
@@ -62,6 +97,7 @@
         <hr />
       </div
     {% endfor %}
-    
+
+    {% endif %}
 </body>
 </html>

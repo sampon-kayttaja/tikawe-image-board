@@ -18,8 +18,24 @@
 
   <h2> Posts by {{ username }}: </h2>
 
+
+  <div>
+
+      <h2>Posts By: {{ sortstate }}</h2>
+      <form action="/change_sort_user/{{ username }}" method="get">
+        <input type="submit" name="sort" value="change" />
+      </form>
+    </div>
+
   <hr />
-  
+    
+    {% if sortstate == "Newest" %}
+        {% set posts = posts_by_new %}
+    {% elif sortstate == "Oldest" %}
+        {% set posts = posts_by_old %}
+    {% else %}
+        {% set posts = posts_by_likes %}
+    {% endif %}
     {% for post in posts %}
         <div>
         {% if post[3] %}
