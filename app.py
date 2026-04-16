@@ -27,9 +27,9 @@ def check_csrf():
 
 @app.route("/")
 def index():
-    posts_by_new = db.query("SELECT * FROM posts ORDER BY created_at DESC LIMIT 10")
-    posts_by_old = db.query("SELECT * FROM posts ORDER BY created_at ASC LIMIT 10")
-    posts_by_likes = db.query("SELECT * FROM posts ORDER BY likes DESC LIMIT 10")
+    posts_by_new = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts ORDER BY created_at DESC LIMIT 10")
+    posts_by_old = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts ORDER BY created_at ASC LIMIT 10")
+    posts_by_likes = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts ORDER BY likes DESC LIMIT 10")
     return render_template("index.html", posts_by_new=posts_by_new, posts_by_old=posts_by_old, posts_by_likes=posts_by_likes, sortstate=sortstate)
 
 #sort posts by time or likes
@@ -184,7 +184,7 @@ def view_post(post_id):
     post = get_stuff.get_post(post_id)
     if not post:
         return "Post not found."
-    comments = db.query("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC", [post_id])
+    comments = db.query("SELECT id, post_id, username, content, image_url, created_at, likes FROM comments WHERE post_id = ? ORDER BY created_at ASC", [post_id])
     return render_template("view_post.html", post=post, comments=comments)
 
 @app.route("/create_comment/<int:post_id>", methods=["POST"])
@@ -313,11 +313,11 @@ def like_comment(comment_id):
 
 @app.route("/user/<username>")
 def user_profile(username):
-    user_posts_by_new = db.query("SELECT * FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
-    user_posts_by_old = db.query("SELECT * FROM posts WHERE username = ? ORDER BY created_at ASC", [username])
-    user_posts_by_likes = db.query("SELECT * FROM posts WHERE username = ? ORDER BY likes DESC", [username])
+    user_posts_by_new = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
+    user_posts_by_old = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY created_at ASC", [username])
+    user_posts_by_likes = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY likes DESC", [username])
     likes_posts = user_posts_by_new[0]["likes"] if user_posts_by_new else 0
-    user_comments = db.query("SELECT * FROM comments WHERE username = ?", [username])
+    user_comments = db.query("SELECT id, post_id, username, content, image_url, created_at, likes FROM comments WHERE username = ?", [username])
     likes_comments = user_comments[0]["likes"] if user_comments else 0
     likes = likes_posts + likes_comments
     comments = len(user_comments)
@@ -350,5 +350,5 @@ def search_results():
     if query == "":
         return redirect("/search")    
 
-    search_results = db.query("SELECT * FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC", ['%' + query + '%', '%' + query + '%'])
+    search_results = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC", ['%' + query + '%', '%' + query + '%'])
     return render_template("search_results.html", query=query, results=search_results, count=len(search_results))
