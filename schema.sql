@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL
 );
 
-
 CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT,
@@ -25,3 +24,15 @@ CREATE TABLE IF NOT EXISTS comments (
     created_at DATETIME,
     likes INTEGER
 );  
+
+CREATE TABLE IF NOT EXISTS post_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER,
+    username TEXT
+);
+
+CREATE TABLE IF NOT EXISTS comment_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id INTEGER,
+    username TEXT
+);

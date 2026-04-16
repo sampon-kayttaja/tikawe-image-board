@@ -298,18 +298,33 @@ def update_comment(comment_id, image_url=""):
 def like_post(post_id):
     if "username" not in session:
         return "You must be logged in to like a post."  
-    db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [post_id])
+    
+    already_liked_post = db.query("SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND username = ?", [post_id, session["username"]])[0][0] > 0
+    if already_liked_post:
+        return "You have already liked this post."
+    else:
+        db.execute("INSERT INTO post_likes (post_id, username) VALUES (?, ?)", [post_id, session["username"]])
+        db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [post_id])
     return redirect("/post/{}".format(post_id))
 
 @app.route("/like_comment/<int:comment_id>", methods=["GET"])
 def like_comment(comment_id):
     if "username" not in session:
         return "You must be logged in to like a comment."
-    db.execute("UPDATE comments SET likes = likes + 1 WHERE id = ?", [comment_id])
+
+    already_liked_comment = db.query("SELECT COUNT(*) FROM comment_likes WHERE comment_id = ? AND username = ?", [comment_id, session["username"]])[0][0] > 0
+
+    if already_liked_comment:
+        return "You have already liked this comment."
+    else:
+        db.execute("UPDATE comments SET likes = likes + 1 WHERE id = ?", [comment_id])
+        db.execute("INSERT INTO comment_likes (comment_id, username) VALUES (?, ?)", [comment_id, session["username"]])
     comment = get_stuff.get_comment(comment_id)
     return redirect("/post/{}".format(comment[1]))
 
 #viewing users
+
+sortstate_user = "Newest"
 
 @app.route("/user/<username>")
 def user_profile(username):
@@ -323,9 +338,6 @@ def user_profile(username):
     comments = len(user_comments)
 
     return render_template("view_user.html", username=username, posts_by_new=user_posts_by_new, posts_by_old=user_posts_by_old, posts_by_likes=user_posts_by_likes, likes=likes, comments=comments, sortstate=sortstate_user)
-
-
-sortstate_user = "Newest"
 
 @app.route("/change_sort_user/<username>", methods=["GET"])
 def sort_change_user(username):
