@@ -28,7 +28,7 @@ def check_csrf():
 @app.route("/")
 def index():
     posts_by_new = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts ORDER BY created_at DESC LIMIT 10")
-    posts_by_old = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts ORDER BY created_at ASC LIMIT 10")
+    posts_by_old = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts LIMIT 10")
     posts_by_likes = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts ORDER BY likes DESC LIMIT 10")
     return render_template("index.html", posts_by_new=posts_by_new, posts_by_old=posts_by_old, posts_by_likes=posts_by_likes, sortstate=sortstate)
 
@@ -300,22 +300,26 @@ def like_post(post_id):
         return "You must be logged in to like a post."  
     
     already_liked_post = db.query("SELECT COUNT(*) FROM post_likes WHERE post_id = ? AND username = ?", [post_id, session["username"]])[0][0] > 0
+    post_id = db.query("SELECT id FROM posts WHERE id = ?", [post_id])[0][0]
+
     if already_liked_post:
-        return "You have already liked this post."
+        return render_template("already_liked.html", post_id=post_id)
     else:
         db.execute("INSERT INTO post_likes (post_id, username) VALUES (?, ?)", [post_id, session["username"]])
         db.execute("UPDATE posts SET likes = likes + 1 WHERE id = ?", [post_id])
     return redirect("/post/{}".format(post_id))
 
 @app.route("/like_comment/<int:comment_id>", methods=["GET"])
+
 def like_comment(comment_id):
     if "username" not in session:
         return "You must be logged in to like a comment."
 
     already_liked_comment = db.query("SELECT COUNT(*) FROM comment_likes WHERE comment_id = ? AND username = ?", [comment_id, session["username"]])[0][0] > 0
+    post_id = db.query("SELECT post_id FROM comments WHERE id = ?", [comment_id])[0][0]
 
     if already_liked_comment:
-        return "You have already liked this comment."
+        return render_template("already_liked_c.html", post_id=post_id)
     else:
         db.execute("UPDATE comments SET likes = likes + 1 WHERE id = ?", [comment_id])
         db.execute("INSERT INTO comment_likes (comment_id, username) VALUES (?, ?)", [comment_id, session["username"]])
@@ -329,7 +333,7 @@ sortstate_user = "Newest"
 @app.route("/user/<username>")
 def user_profile(username):
     user_posts_by_new = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
-    user_posts_by_old = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY created_at ASC", [username])
+    user_posts_by_old = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ?", [username])
     user_posts_by_likes = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY likes DESC", [username])
     likes_posts = user_posts_by_new[0]["likes"] if user_posts_by_new else 0
     user_comments = db.query("SELECT id, post_id, username, content, image_url, created_at, likes FROM comments WHERE username = ?", [username])
@@ -364,3 +368,7 @@ def search_results():
 
     search_results = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC", ['%' + query + '%', '%' + query + '%'])
     return render_template("search_results.html", query=query, results=search_results, count=len(search_results))
+
+
+
+

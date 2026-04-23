@@ -67,6 +67,8 @@
         {% endif %}
         <p>{{ comment[3] }}</p>
 
+        <p>Likes: {{ comment[6] }} | <i>Posted at {{ comment[5] }}</i></p>
+
         {% if session.username == comment[2] %}
           <form action="/like_comment/{{ comment[0] }}" method="get">
             <input type="submit" value="Like" /></form>
@@ -81,7 +83,7 @@
           </form>
         {% endif %}
 
-        <p>Likes: {{ comment[6] }} | <i>Posted at {{ comment[5] }}</i></p>
+       
     </div>
   <hr />
 
