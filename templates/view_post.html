@@ -20,6 +20,7 @@
   <p>Likes: {{ post[6] }} | <i>Posted at: {{ post[5] }}</i></p>
   
   {% if session.username == post[1] %}
+  <div style="display: flex; gap: 10px;">
     <form action="/like_post/{{ post[0] }}" method="get">
     <input type="submit" value="Like" /></form>
 
@@ -31,6 +32,7 @@
     <form action="/edit_post/{{ post[0] }}" method="get">
       <input type="submit" value="Edit Post" />
     </form>
+  </div>
   {% endif %}
   <hr />
 
@@ -70,6 +72,7 @@
         <p>Likes: {{ comment[6] }} | <i>Posted at {{ comment[5] }}</i></p>
 
         {% if session.username == comment[2] %}
+        <div style="display: flex; gap: 10px;">
           <form action="/like_comment/{{ comment[0] }}" method="get">
             <input type="submit" value="Like" /></form>
 
@@ -81,6 +84,7 @@
           <form action="/edit_comment/{{ comment[0] }}" method="get">
             <input type="submit" value="Edit Comment" />
           </form>
+        </div>
         {% endif %}
 
        
