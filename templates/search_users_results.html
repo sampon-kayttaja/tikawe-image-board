@@ -1,0 +1,27 @@
+<html>
+<head>
+    <title>Search for users</title>
+</head>
+<body>
+  <form action="/" method="get">
+    <input type="submit" value="Back to home" />
+  </form>
+
+
+  <h1>Search Users</h1>
+    <form action="/search_users_results" method="get">
+        <input type="text" name="query" placeholder="Enter search term">
+        <input type="submit" value="Search">
+    </form>
+
+
+
+<h1>Search Results for "{{ query }}" ({{ count }} results)</h1>
+
+<hr />
+{%for user in results %}
+    <div>
+        <p><b><h2><a href="/user/{{ user[0] }}">{{ user[0] }}</a></h2></b></p>
+        <hr />
+    </div>
+{% endfor %}

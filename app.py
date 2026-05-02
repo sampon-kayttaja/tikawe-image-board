@@ -4,8 +4,11 @@ import os
 from flask import Flask, abort, jsonify, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+
 import db
 import get_stuff
+import users
+import searching
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -310,7 +313,6 @@ def like_post(post_id):
     return redirect("/post/{}".format(post_id))
 
 @app.route("/like_comment/<int:comment_id>", methods=["GET"])
-
 def like_comment(comment_id):
     if "username" not in session:
         return "You must be logged in to like a comment."
@@ -326,49 +328,30 @@ def like_comment(comment_id):
     comment = get_stuff.get_comment(comment_id)
     return redirect("/post/{}".format(comment[1]))
 
-#viewing users
-
-sortstate_user = "Newest"
+#viewing user profiles and their posts
 
 @app.route("/user/<username>")
 def user_profile(username):
-    user_posts_by_new = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY created_at DESC", [username])
-    user_posts_by_old = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ?", [username])
-    user_posts_by_likes = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE username = ? ORDER BY likes DESC", [username])
-    likes_posts = user_posts_by_new[0]["likes"] if user_posts_by_new else 0
-    user_comments = db.query("SELECT id, post_id, username, content, image_url, created_at, likes FROM comments WHERE username = ?", [username])
-    likes_comments = user_comments[0]["likes"] if user_comments else 0
-    likes = likes_posts + likes_comments
-    comments = len(user_comments)
-
-    return render_template("view_user.html", username=username, posts_by_new=user_posts_by_new, posts_by_old=user_posts_by_old, posts_by_likes=user_posts_by_likes, likes=likes, comments=comments, sortstate=sortstate_user)
+    return users.user_profile(username)
 
 @app.route("/change_sort_user/<username>", methods=["GET"])
 def sort_change_user(username):
-    global sortstate_user
-    if sortstate_user == "Newest":
-        sortstate_user = "Oldest"
-    elif sortstate_user == "Oldest":
-        sortstate_user = "Most Liked"
-    else:
-        sortstate_user = "Newest"
-    return redirect("/user/{}".format(username))
+    return users.sort_change_user(username)
 
-#searching posts
+#searching posts and users
 
-@app.route("/search")
+@app.route("/search_posts")
 def search():
-    return render_template("search.html")
+    return render_template("search_posts.html")
 
-@app.route("/search_results", methods=["GET"])
+@app.route("/search_posts_results", methods=["GET"])
 def search_results():
-    query = request.args.get("query", "").strip()
-    if query == "":
-        return redirect("/search")    
+    return searching.search_results()
 
-    search_results = db.query("SELECT id, username, title, image_url, content, created_at, likes FROM posts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC", ['%' + query + '%', '%' + query + '%'])
-    return render_template("search_results.html", query=query, results=search_results, count=len(search_results))
+@app.route("/search_users")
+def search_users():
+    return render_template("search_users.html")
 
-
-
-
+@app.route("/search_users_results", methods=["GET"])
+def search_users_results():
+    return searching.search_users_results()
