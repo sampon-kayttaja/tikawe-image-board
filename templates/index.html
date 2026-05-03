@@ -40,19 +40,18 @@
 
   {% endif %}
 
+    <hr />    
+
+    <h2>Search <a href="/search_posts">posts</a> or <a href="/search_users">users</a></h2> 
+
     <hr />
 
     <h2><a href="/new_post">New Post</a></h2> 
 
     <hr />
 
-    <h2><a href="/search_posts">Search Posts</a> or <a href="/search_users">Search Users</a></h2> 
-
-        <hr />
-
-
     <div>
-      <h2>Posts By: {{ sortstate }}</h2>
+      <h2>Sorted by: {{ sortstate }}</h2>
       <form action="/change_sort" method="get">
         <input type="submit" name="sort" value="change" />
       </form>
