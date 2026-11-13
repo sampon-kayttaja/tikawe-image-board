@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Image Board</title>
+</head>
+
+<body>
+  <h1>Welcome to the Image Board</h1>
+  <p>This is the main page of the image board.</p>
+  <a href="/new">Create a New Post</a>
+
+  <h2>Recent Posts</h2>
+  <ul>
+    {% for post in posts %}
+      <li>{{ post.title }}: {{ post.content }}</li>
+    {% endfor %}
+  </ul>
+</body>
+
+</html>
