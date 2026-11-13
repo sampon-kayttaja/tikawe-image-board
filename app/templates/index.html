@@ -13,7 +13,7 @@
   <h2>Recent Posts</h2>
   <ul>
     {% for post in posts %}
-      <li>{{ post.title }}: {{ post.content }}</li>
+      <li><b><a href="/post/{{ post.id }}">{{ post.title }}</a></b>: {{ post.content }}</li>
     {% endfor %}
   </ul>
 </body>
