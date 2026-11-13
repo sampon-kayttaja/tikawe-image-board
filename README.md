@@ -2,9 +2,11 @@
 
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
 - Käyttäjä pystyy lisäämään, muokkaamaan ja poistamaan postauksia.
-- Käyttäjä pystyy lisäämään kuvia postauksiin.
+- Käyttäjä pystyy lisäämään kuvia tai videoita postauksiin.
 - Käyttäjä näkee sovellukseen lisätyt postaukset.
-- Käyttäjä pystyy etsimään ilmoituksia hakusanalla.
+- Käyttäjä pystyy etsimään postauksia hakusanalla.
 - Sovelluksessa on käyttäjäsivut, jotka näyttävät tilastoja ja käyttäjän lisäämät postaukset.
-- Käyttäjä pystyy valitsemaan ilmoitukselle aiheen ja hakea muita postauksia aiheen perusteella.
+- Käyttäjä pystyy valitsemaan postaukselle aiheen ja hakea muita postauksia aiheen perusteella.
+- Käyttäjä pystyy tykkäämään postauksista.
 - Käyttäjä pystyy kommentoimaan postauksiin.
+- Sovelluksen tarkoitus on olla instagram tyylinen kuvien ja videoitten jakamis palvelu.
