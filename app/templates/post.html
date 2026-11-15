@@ -7,16 +7,15 @@
   <h1>Post Details</h1>
   <p><b>Title:</b> {{ post.title }}</p>
   <p><b>Content:</b> {{ post.content }}</p>
-  <p><b>User:</b> {{ post.author }}</p>
-  <p><b>Likes:</b> {{ post.likes }}</p>
+  <p><b>Likes:</b> {{ likes }}</p>
+  <p><b>User:</b> {{ author }}</p>
   <a href="/like/{{ post.id }}">Like</a>
-  <a href="/comment/{{ post.id }}">Comment</a>
-  <h2>Comments</h2>
   <ul>
     {% for comment in comments %}
       <li><b>{{ comment.author }}:</b> {{ comment.content }}</li>
     {% endfor %}
   </ul>
+  <h2>Comments</h2>
   <form action="/comment/{{ post.id }}" method="post">
     <label for="comment">Add a Comment:</label><br>
     <textarea id="comment" name="comment" required></textarea><br><br>

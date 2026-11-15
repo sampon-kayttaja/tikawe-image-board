@@ -27,15 +27,19 @@ def new():
 def send():
     content = request.form["content"]
     title = request.form["title"]
-    db.execute("INSERT INTO posts (title, content) VALUES (?, ?)", [title, content])
+    username = session.get("username")
+    db.execute("INSERT INTO posts (title, content, user_id) VALUES (?, ?, (SELECT id FROM users WHERE username = ?))", [title, content, username])
     return redirect("/")
 
 @app.route("/post/<int:post_id>")
 def post(post_id):
-    post = db.query("SELECT id, title, content FROM posts WHERE id = ?", [post_id])
+    post = db.query("SELECT id, title, content, user_id FROM posts WHERE id = ?", [post_id])
     comments = db.query("SELECT id, post_id, content FROM comments WHERE post_id = ?", [post_id])
+    likes = db.query("SELECT COUNT(*) as like_count FROM likes WHERE post_id = ?", [post_id])
+    like_count = likes[0][0]
+    author = db.query("SELECT username FROM users WHERE id = ?", [post[0]["user_id"]]) if post else None
     if post:
-        return render_template("post.html", post=post[0], comments=comments, username=session.get("username"))
+        return render_template("post.html", post=post[0], comments=comments, likes=like_count, author=author[0]["username"] if author else None, username=session.get("username"))
     return "Post not found", 404
 
 @app.route("/newUser")
