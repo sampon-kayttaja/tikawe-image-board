@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+  <title>Create User</title>
+</head>
+
+<body>
+  <h1>Create a New User</h1>
+  <form action="/sendUser" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required><br><br>
+    <label for="password1">Password:</label>
+    <input type="password" id="password1" name="password1" required><br><br>
+    <label for="password2">Confirm Password:</label>
+    <input type="password" id="password2" name="password2" required><br><br>
+    <input type="submit" value="Create User">
+  </form> 
+
+  <p>Already have an account? <a href="/login">Login here</a>.</p>
+</body>
+</html>

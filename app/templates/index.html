@@ -8,8 +8,9 @@
 <body>
   <h1>Welcome to the Image Board</h1>
   <p>This is the main page of the image board.</p>
+  <p>Welcome, {{ username }}!</p>
   <a href="/new">Create a New Post</a>
-
+  <a href="/logout">Logout</a>
   <h2>Recent Posts</h2>
   <ul>
     {% for post in posts %}
