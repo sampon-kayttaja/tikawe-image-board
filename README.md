@@ -10,3 +10,23 @@
 - Käyttäjä pystyy tykkäämään postauksista.
 - Käyttäjä pystyy kommentoimaan postauksiin.
 - Sovelluksen tarkoitus on olla instagram tyylinen kuvien ja videoitten jakamis palvelu.
+
+
+
+# sovelluksen käynnistäminen
+
+suorita sovelluksen juuressa:
+
+1. python3 -m venv venv
+
+2. source venv/bin/activate
+
+3. pip install -r requirements.txt
+
+4. mkdir -p instance
+
+5. sqlite3 instance/database.db < app/schema.sql
+
+6. flask run
+
+
