@@ -15,7 +15,7 @@
 
 # sovelluksen käynnistäminen
 
-suorita sovelluksen juuressa:
+suorita repositorion juuressa:
 
 1. python3 -m venv venv
 
