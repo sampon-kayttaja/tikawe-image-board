@@ -267,6 +267,7 @@ def send_user():
         flash("Username already exists", "error")
         return redirect("/new_user")
 
+    flash("User created successfully. Please log in.", "success")
     return redirect("/")
 
 
