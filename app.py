@@ -228,7 +228,6 @@ def login():
 
 @app.route("/send_login", methods=["POST"])
 def send_login():
-    check_csrf()
     username = request.form["username"]
     password = request.form["password"]
 
