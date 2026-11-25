@@ -101,3 +101,10 @@ def add_like(post_id, user_id):
 
 def remove_like(post_id, user_id):
     db.execute("DELETE FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id])
+
+
+def update_post(post_id, title, content):
+    db.execute(
+        "UPDATE posts SET title = ?, content = ? WHERE id = ?",
+        [title, content, post_id],
+    )

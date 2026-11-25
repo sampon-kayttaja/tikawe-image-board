@@ -121,6 +121,51 @@ def post_picture(post_id):
     return Response(rows[0]["picture"], mimetype="image/jpeg")
 
 
+@app.route("/edit_post/<int:post_id>")
+def edit(post_id):
+    post_rows = posts.get_post(post_id)
+    if not post_rows:
+        flash("Post not found", "error")
+        return redirect("/")
+    post_user_id = post_rows[0]["user_id"]
+    user_id = session.get("user_id")
+    if post_user_id != user_id:
+        flash("You are not authorized to edit this post", "error")
+        return redirect(f"/post/{post_id}")
+    return render_template("edit_post.html", post=post_rows[0])
+
+@app.route("/update_post/<int:post_id>", methods=["POST"])
+def update_post(post_id):
+    check_csrf()
+    post_rows = posts.get_post(post_id)
+    if not post_rows:
+        flash("Post not found", "error")
+        return redirect("/")
+    post_user_id = post_rows[0]["user_id"]
+    user_id = session.get("user_id")
+    if post_user_id != user_id:
+        flash("You are not authorized to edit this post", "error")
+        return redirect(f"/post/{post_id}")
+
+    title = request.form["title"]
+    content = request.form["content"]
+
+    if not title:
+        flash("Error: Title cannot be empty", "error")
+        return redirect(f"/edit_post/{post_id}")
+    if len(title) > 100:
+        flash("Error: Title cannot exceed 100 characters", "error")
+        return redirect(f"/edit_post/{post_id}")
+    if not content:
+        flash("Error: Content cannot be empty", "error")
+        return redirect(f"/edit_post/{post_id}")
+    if len(content) > 1000:
+        flash("Error: Content cannot exceed 1000 characters", "error")
+        return redirect(f"/edit_post/{post_id}")
+
+    posts.update_post(post_id, title, content)
+    return redirect(f"/post/{post_id}")
+
 @app.route("/delete/<int:post_id>", methods=["POST"])
 def delete(post_id):
     check_csrf()

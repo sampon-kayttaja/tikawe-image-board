@@ -18,6 +18,9 @@
         <button type="submit">♥ Like</button>
       </form>
       {% if owner %}
+        <form action="/edit_post/{{ post.id }}" method="get">
+          <button type="submit">Edit post</button>
+        </form>
         <form action="/delete/{{ post.id }}" method="post">
           <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
           <button class="button-danger" type="submit">Delete post</button>
