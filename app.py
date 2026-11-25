@@ -1,5 +1,4 @@
 import secrets
-import sqlite3
 
 from flask import (
     Flask,
@@ -13,33 +12,155 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import config
-import db
+import posts as posts
+import users as users
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
 
 
-@app.before_request
-def before_request():
-    if "csrf_token" not in session:
-        session["csrf_token"] = secrets.token_hex(16)
-    csrf_token = session["csrf_token"]
-    if request.method not in {"GET", "HEAD", "OPTIONS"}:
-        submitted_token = request.form.get("csrf_token")
-        if not submitted_token or not secrets.compare_digest(
-            csrf_token.encode(), submitted_token.encode()
-        ):
-            abort(403)
+def check_csrf():
+    if "csrf_token" not in request.form:
+        abort(403)
+    if request.form["csrf_token"] != session["csrf_token"]:
+        abort(403)
 
-    public_endpoints = {
-        "login",
-        "send_login",
-        "new_user",
-        "send_user",
-    }
-    if session.get("username") is None and request.endpoint not in public_endpoints:
+@app.before_request
+def require_login():
+    if request.endpoint in ["login", "send_login", "new_user", "send_user"]:
+        return
+    if "username" not in session:
         return redirect("/login")
 
+@app.route("/")
+def index():
+    search_query = request.args.get("q", "").strip()
+    sort_by = request.args.get("sort", "newest")
+    post_rows = posts.get_posts(search_query, sort_by)
+    return render_template(
+        "index.html",
+        posts=post_rows,
+        username=session["username"],
+        search_query=search_query,
+        sort_by=sort_by,
+    )
+
+
+@app.route("/new")
+def new():
+    return render_template("new.html")
+
+
+@app.route("/send", methods=["POST"])
+def send():
+    check_csrf()
+    content = request.form["content"]
+    title = request.form["title"]
+    username = session.get("username")
+    file = request.files.get("picture")
+    if not title:
+        return "Error: Title cannot be empty", 400
+    if not content:
+        return "Error: Content cannot be empty", 400
+
+    if file is None or not file.filename:
+        return "Error: No image uploaded", 400
+    if not file.filename.lower().endswith(".jpg"):
+        return "Error: Only JPG images are allowed", 400
+    image = file.read()
+    if len(image) > 100 * 1024:
+        return "Error: Image size exceeds 100KB limit", 400
+
+    posts.create_post(title, content, username, image)
+    return redirect("/")
+
+
+@app.route("/post/<int:post_id>")
+def post(post_id):
+    post_rows = posts.get_post(post_id)
+    comments = posts.get_comments(post_id)
+    like_count = posts.get_like_count(post_id)
+    author = (
+        users.get_username_by_id(post_rows[0]["user_id"])
+        if post_rows
+        else None
+    )
+    owner = session.get("user_id") == post_rows[0]["user_id"] if post_rows else False
+
+    if post_rows:
+        return render_template(
+            "post.html",
+            post=post_rows[0],
+            comments=comments,
+            likes=like_count,
+            author=author[0]["username"],
+            username=session.get("username"),
+            owner=owner,
+        )
+    return "Post not found", 404
+
+
+@app.route("/post/<int:post_id>/picture")
+def post_picture(post_id):
+    rows = posts.get_picture(post_id)
+    if not rows or rows[0]["picture"] is None:
+        abort(404)
+    return Response(rows[0]["picture"], mimetype="image/jpeg")
+
+
+@app.route("/delete/<int:post_id>", methods=["POST"])
+def delete(post_id):
+    check_csrf()
+    post_rows = posts.get_post_user_id(post_id)
+    post_user_id = post_rows[0]["user_id"] if post_rows else None
+    user_id = session.get("user_id")
+    if post_user_id == user_id:
+        posts.delete_post(post_id)
+    else:
+        return "You are not authorized to delete this post", 403
+    return redirect("/")
+
+
+@app.route("/comment/<int:post_id>", methods=["POST"])
+def comment(post_id):
+    check_csrf()
+    content = request.form["content"]
+    user_id = session.get("user_id")
+
+    if not content:
+        return "Error: Comment content cannot be empty", 400
+
+    posts.create_comment(post_id, content, user_id)
+    return redirect(f"/post/{post_id}")
+
+
+@app.route("/delete_comment/<int:comment_id>", methods=["POST"])
+def delete_comment(comment_id):
+    check_csrf()
+    comment_rows = posts.get_comment(comment_id)
+    comment_user_id = comment_rows[0]["user_id"] if comment_rows else None
+    post_id = comment_rows[0]["post_id"] if comment_rows else None
+    user_id = session.get("user_id")
+    if comment_user_id == user_id:
+        posts.delete_comment(comment_id)
+    else:
+        return "You are not authorized to delete this comment", 403
+    return redirect(f"/post/{post_id}")
+
+
+@app.route("/like/<int:post_id>", methods=["POST"])
+def like(post_id):
+    check_csrf()
+    user_id = session.get("user_id")
+    existing_like = posts.get_like(post_id, user_id)
+    if not existing_like:
+        posts.add_like(post_id, user_id)
+    if existing_like:
+        posts.remove_like(post_id, user_id)
+    return redirect(f"/post/{post_id}")
+
+
+# User Management
 
 @app.route("/new_user")
 def new_user():
@@ -68,12 +189,7 @@ def send_user():
         return "Passwords do not match", 400
 
     hashed_password = generate_password_hash(password1)
-    try:
-        db.execute(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-            [username, hashed_password],
-        )
-    except sqlite3.IntegrityError:
+    if not users.create_user(username, hashed_password):
         return "Username already exists", 400
 
     return redirect("/")
@@ -86,17 +202,15 @@ def login():
 
 @app.route("/send_login", methods=["POST"])
 def send_login():
+    check_csrf()
     username = request.form["username"]
     password = request.form["password"]
 
-    sql = "SELECT password_hash FROM users WHERE username = ?"
-    password_hash = db.query(sql, [username])
+    user = users.get_user_by_username(username)
 
-    if password_hash and check_password_hash(password_hash[0][0], password):
+    if user and check_password_hash(user[0]["password_hash"], password):
         session["username"] = username
-        session["user_id"] = db.query(
-            "SELECT id FROM users WHERE username = ?", [username]
-        )[0]["id"]
+        session["user_id"] = user[0]["id"]
         session["csrf_token"] = secrets.token_hex(16)
         return redirect("/")
     return "ERROR: Invalid username or password", 401
@@ -104,176 +218,6 @@ def send_login():
 
 @app.route("/logout", methods=["POST"])
 def logout():
-    session.pop("username", None)
-    session.pop("user_id", None)
-    session.pop("csrf_token", None)
+    del session["username"]
+    del session["user_id"]
     return redirect("/login")
-
-
-@app.route("/")
-def index():
-    search_query = request.args.get("q", "").strip()
-    sort_orders = {
-        "newest": "posts.created_at DESC, posts.id DESC",
-        "oldest": "posts.created_at ASC, posts.id ASC",
-        "most_liked": "like_count DESC, posts.created_at DESC, posts.id DESC",
-    }
-    sort_by = request.args.get("sort", "newest")
-    if sort_by not in sort_orders:
-        sort_by = "newest"
-
-    sql = """
-        SELECT posts.id, posts.title, posts.content,
-               posts.picture IS NOT NULL AS has_picture,
-               (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count
-        FROM posts
-    """
-    params = []
-    if search_query:
-        sql += " WHERE posts.title LIKE ?"
-        params.append(f"%{search_query}%")
-    sql += f" ORDER BY {sort_orders[sort_by]}"
-    posts = db.query(sql, params)
-    return render_template(
-        "index.html",
-        posts=posts,
-        username=session["username"],
-        search_query=search_query,
-        sort_by=sort_by,
-    )
-
-
-@app.route("/new")
-def new():
-    return render_template("new.html")
-
-
-@app.route("/send", methods=["POST"])
-def send():
-    content = request.form["content"]
-    title = request.form["title"]
-    username = session.get("username")
-    file = request.files.get("picture")
-    if not title:
-        return "Error: Title cannot be empty", 400
-    if not content:
-        return "Error: Content cannot be empty", 400
-
-    if file is None or not file.filename:
-        return "Error: No image uploaded", 400
-    if not file.filename.lower().endswith(".jpg"):
-        return "Error: Only JPG images are allowed", 400
-    image = file.read()
-    if len(image) > 100 * 1024:
-        return "Error: Image size exceeds 100KB limit", 400
-
-    db.execute(
-        """
-        INSERT INTO posts (title, content, user_id, picture)
-        VALUES (?, ?, (SELECT id FROM users WHERE username = ?), ?)
-        """,
-        [title, content, username, image],
-    )
-    return redirect("/")
-
-
-@app.route("/post/<int:post_id>")
-def post(post_id):
-    post_rows = db.query(
-        "SELECT id, title, content, user_id FROM posts WHERE id = ?", [post_id]
-    )
-    comments = db.query(
-        "SELECT comments.id, comments.post_id, comments.content, "
-        "comments.user_id, users.username AS author "
-        "FROM comments "
-        "JOIN users ON comments.user_id = users.id "
-        "WHERE comments.post_id = ?",
-        [post_id],
-    )
-    likes = db.query(
-        "SELECT COUNT(*) as like_count FROM likes WHERE post_id = ?", [post_id]
-    )
-    like_count = likes[0][0]
-    author = (
-        db.query("SELECT username FROM users WHERE id = ?", [post_rows[0]["user_id"]])
-        if post_rows
-        else None
-    )
-    owner = session.get("user_id") == post_rows[0]["user_id"] if post_rows else False
-
-    if post_rows:
-        return render_template(
-            "post.html",
-            post=post_rows[0],
-            comments=comments,
-            likes=like_count,
-            author=author[0]["username"],
-            username=session.get("username"),
-            owner=owner,
-        )
-    return "Post not found", 404
-
-
-@app.route("/post/<int:post_id>/picture")
-def post_picture(post_id):
-    rows = db.query("SELECT picture FROM posts WHERE id = ?", [post_id])
-    if not rows or rows[0]["picture"] is None:
-        abort(404)
-    return Response(rows[0]["picture"], mimetype="image/jpeg")
-
-
-@app.route("/delete/<int:post_id>", methods=["POST"])
-def delete(post_id):
-    post_rows = db.query("SELECT user_id FROM posts WHERE id = ?", [post_id])
-    post_user_id = post_rows[0]["user_id"] if post_rows else None
-    user_id = session.get("user_id")
-    if post_user_id == user_id:
-        db.execute("DELETE FROM posts WHERE id = ?", [post_id])
-        db.execute("DELETE FROM comments WHERE post_id = ?", [post_id])
-        db.execute("DELETE FROM likes WHERE post_id = ?", [post_id])
-    else:
-        return "You are not authorized to delete this post", 403
-    return redirect("/")
-
-
-@app.route("/comment/<int:post_id>", methods=["POST"])
-def comment(post_id):
-    content = request.form["content"]
-    user_id = session.get("user_id")
-
-    if not content:
-        return "Error: Comment content cannot be empty", 400
-
-    db.execute(
-        "INSERT INTO comments (post_id, content, user_id) VALUES (?, ?, ?)",
-        [post_id, content, user_id],
-    )
-    return redirect(f"/post/{post_id}")
-
-
-@app.route("/delete_comment/<int:comment_id>", methods=["POST"])
-def delete_comment(comment_id):
-    comment_rows = db.query(
-        "SELECT user_id, post_id FROM comments WHERE id = ?", [comment_id]
-    )
-    comment_user_id = comment_rows[0]["user_id"] if comment_rows else None
-    post_id = comment_rows[0]["post_id"] if comment_rows else None
-    user_id = session.get("user_id")
-    if comment_user_id == user_id:
-        db.execute("DELETE FROM comments WHERE id = ?", [comment_id])
-    else:
-        return "You are not authorized to delete this comment", 403
-    return redirect(f"/post/{post_id}")
-
-
-@app.route("/like/<int:post_id>", methods=["POST"])
-def like(post_id):
-    user_id = session.get("user_id")
-    existing_like = db.query(
-        "SELECT * FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id]
-    )
-    if not existing_like:
-        db.execute("INSERT INTO likes (post_id, user_id) VALUES (?, ?)", [post_id, user_id])
-    if existing_like:
-        db.execute("DELETE FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id])
-    return redirect(f"/post/{post_id}")
