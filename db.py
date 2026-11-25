@@ -3,7 +3,7 @@ import os
 from flask import current_app, g
 
 def get_connection():
-    path = os.path.join(current_app.instance_path, "database.db")
+    path = os.path.join(current_app.root_path, "database.db")
     con = sqlite3.connect(path)
     con.execute("PRAGMA foreign_keys = ON")
     con.row_factory = sqlite3.Row

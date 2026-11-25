@@ -36,8 +36,6 @@ Suorita repositorion juuressa:
 
 3. pip install -r requirements.txt
 
-4. mkdir -p instance
+4. sqlite3 database.db < schema.sql
 
-5. sqlite3 instance/database.db < app/schema.sql
-
-6. flask run
+5. flask run
