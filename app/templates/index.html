@@ -1,36 +1,47 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <title>Image Board</title>
-</head>
+{% block title %}Image Board{% endblock %}
 
-<body>
-  <h1>Welcome to the Image Board</h1>
-  <p>This is the main page of the image board.</p>
-  <p><i>Logged in as {{ username }}</i></p>
-  <a href="/new">Create a New Post</a>
-  <a href="/logout">Logout</a>
-  <p></p>
-  <form action="/" method="get">
-    <label for="title-search">Search posts by title:</label>
-    <input type="search" id="title-search" name="q" value="{{ search_query }}">
-    <label for="sort">Sort by:</label>
-    <select id="sort" name="sort">
-      <option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
-      <option value="oldest" {% if sort_by == "oldest" %}selected{% endif %}>Oldest</option>
-      <option value="most_liked" {% if sort_by == "most_liked" %}selected{% endif %}>Most liked</option>
-    </select>
-    <button type="submit">Apply</button>
-    {% if search_query %}
-      <a href="/">Clear</a>
-    {% endif %}
+{% block content %}
+  <form class="panel toolbar" action="/" method="get">
+    <div class="field">
+      <label for="title-search">Search posts</label>
+      <input type="search" id="title-search" name="q" value="{{ search_query }}">
+    </div>
+    <div class="field">
+      <label for="sort">Sort by</label>
+      <select id="sort" name="sort">
+        <option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
+        <option value="oldest" {% if sort_by == "oldest" %}selected{% endif %}>Oldest</option>
+        <option value="most_liked" {% if sort_by == "most_liked" %}selected{% endif %}>Most liked</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="submit">Apply</button>
+      {% if search_query %}<a class="button button-secondary" href="/">Clear</a>{% endif %}
+    </div>
   </form>
-  <ul>
-    {% for post in posts %}
-      <li><b><a href="/post/{{ post.id }}">{{ post.title }}</a></b>: {{ post.content }}</li>
-    {% endfor %}
-  </ul>
-</body>
 
-</html>
+  {% if posts %}
+    <section class="post-list" aria-label="Posts">
+      {% for post in posts %}
+        <article class="post-card">
+          <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>
+          <p>{{ post.content }}</p>
+          <div class="post-meta">{{ post.like_count }} {{ "like" if post.like_count == 1 else "likes" }} · <a href="/post/{{ post.id }}">View post & comments →</a></div>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}
+    <div class="panel empty-state">
+      {% if search_query %}
+        <h2>No posts found</h2>
+        <p>Try another search, or <a href="/">browse all posts</a>.</p>
+      {% else %}
+        <h2>The board is waiting for its first post</h2>
+        <p>Share something to get the conversation started.</p>
+        <a class="button" href="/new">Create a post</a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,21 +1,26 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <title>New Post</title>
-</head>
+{% block title %}New post{% endblock %}
+{% block page_class %}page-narrow{% endblock %}
 
-<body>
-  <h1>New Post</h1>
-  <form action="/send" method="post">
-    <label for="title"><b>Title:</b></label>
-    <input type="text" id="title" name="title" required><br><br>
-    <label for="content"><b>Content:</b></label><br>
-    <textarea id="content" name="content" rows="4" cols="50" required></textarea><br><br>
-    <input type="submit" value="Submit">
-  </form>
-  <p></p>
-  <a href="/">Back to Home</a>
-</body>
-
-</html>
+{% block content %}
+  <section class="panel form-panel">
+    <h1>Create a post</h1>
+    <p class="subtitle">Share an idea, a moment, or something you found interesting.</p>
+    <form action="/send" method="post">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <div class="field">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required>
+      </div>
+      <div class="field">
+        <label for="content">Your post</label>
+        <textarea id="content" name="content" required></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit">Create post</button>
+        <a class="button button-secondary" href="/">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

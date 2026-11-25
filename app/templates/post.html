@@ -1,39 +1,55 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Post Details</title>
-</head>
-<body>
-  <h1>Post Details</h1>
-  <p><b>Title:</b> {{ post.title }}</p>
-  <p><b>Content:</b> {{ post.content }}</p>
-  <p><b>Likes:</b> {{ likes }}</p>
-  <p><b>User:</b> {{ author }}</p>
+{% extends "layout.html" %}
 
-  <form action="/like/{{ post.id }}" method="post">
-    <button type="submit">Like</button>
-  </form>
-  {% if owner %}
-    <form action="/delete/{{ post.id }}" method="post">
-      <button type="submit">Delete Post</button>
-    </form>
-  {% endif %}
-  <ul>
-    {% for comment in comments %}
-      <li><b>{{ comment.author }}:</b> {{ comment.content }}</li>
-      {% if session.get("user_id") == comment.user_id %}
-        <form action="/delete_comment/{{ comment.id }}" method="post">
-          <button type="submit">Delete Comment</button>
+{% block title %}{{ post.title }}{% endblock %}
+{% block page_class %}page-narrow{% endblock %}
+
+{% block content %}
+  <article class="panel form-panel">
+    <h1>{{ post.title }}</h1>
+    <div class="detail-meta">
+      <span>Posted by {{ author }}</span>
+      <span>{{ likes }} {{ "like" if likes == 1 else "likes" }}</span>
+    </div>
+    <div class="detail-content">{{ post.content }}</div>
+    <div class="detail-actions">
+      <form action="/like/{{ post.id }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <button type="submit">♥ Like</button>
+      </form>
+      {% if owner %}
+        <form action="/delete/{{ post.id }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <button class="button-danger" type="submit">Delete post</button>
         </form>
       {% endif %}
-    {% endfor %}
-  </ul>
-  <h2>Comments</h2>
-  <form action="/comment/{{ post.id }}" method="post">
-    <label for="comment">Add a Comment:</label><br>
-    <textarea id="comment" name="content" required></textarea><br><br>
-    <input type="submit" value="Submit Comment">
-  </form>
-  <a href="/">Back to Home</a>
-</body>
-</html>
+    </div>
+
+    <h2 class="section-heading">Comments{% if comments %} · {{ comments|length }}{% endif %}</h2>
+    {% if comments %}
+      <ul class="comment-list">
+        {% for comment in comments %}
+          <li class="comment">
+            <p><strong>{{ comment.author }}</strong><br>{{ comment.content }}</p>
+            {% if session.get("user_id") == comment.user_id %}
+              <form action="/delete_comment/{{ comment.id }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <button class="button-danger" type="submit">Delete</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="subtitle">No comments yet.</p>
+    {% endif %}
+
+    <form action="/comment/{{ post.id }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <div class="field">
+        <label for="comment">Add a comment</label>
+        <textarea id="comment" name="content" required></textarea>
+      </div>
+      <button type="submit">Submit comment</button>
+    </form>
+  </article>
+{% endblock %}

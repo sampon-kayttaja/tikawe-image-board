@@ -1,4 +1,6 @@
-from flask import Flask
+import secrets
+
+from flask import Flask, abort
 from flask import redirect, render_template, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import config
@@ -11,6 +13,14 @@ app.secret_key = config.secret_key
 
 @app.before_request
 def before_request():
+    csrf_token = session.get("csrf_token")
+    if request.method not in {"GET", "HEAD", "OPTIONS"}:
+        submitted_token = request.form.get("csrf_token")
+        if not submitted_token or not secrets.compare_digest(
+            csrf_token.encode(), submitted_token.encode()
+        ):
+            abort(403)
+
     if session.get("username") is None and request.endpoint not in ["login", "send_login", "new_user", "send_user"]:
         return redirect("/login")
 
@@ -170,11 +180,13 @@ def send_login():
     if password_hash and check_password_hash(password_hash[0][0], password):
         session["username"] = username
         session["user_id"] = db.query("SELECT id FROM users WHERE username = ?", [username])[0]["id"]
+        session["csrf_token"] = secrets.token_hex(16)
         return redirect("/")
     else:
         return "ERROR: Invalid username or password", 401
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
     session.pop("username", None)
+    session.pop("user_id", None)
     return redirect("/login")

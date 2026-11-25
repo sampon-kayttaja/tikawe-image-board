@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Tikawe Image Board{% endblock %}</title>
+</head>
+<body>
+  <header>
+    <h1><a href="/">Tikawe Image Board</a></h1>
+    <nav aria-label="Main navigation">
+      {% if session.get("username") %}
+        <p>Logged in as {{ session.get("username") }}</p>
+        <a href="/">Home</a> |
+        <a href="/new">New post</a> |
+        <form action="/logout" method="post">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <button type="submit">Log out</button>
+        </form>
+      {% else %}
+        <a href="/login">Log in</a> |
+        <a href="/new_user">Create account</a>
+      {% endif %}
+    </nav>
+    <hr>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
