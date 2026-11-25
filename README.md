@@ -20,6 +20,7 @@ Sovelluksessa pystyy tällä hetkellä:
 - Luoda käyttäjän
 - Kirjautua sisään ja ulos
 - Luoda postauksen ja poistaa oman postauksen
+- Muokata omaa postausta
 - Tykätä postauksista ja poistaa oman tykkäyksen
 - Kommentoida ja poistaa oman kommentin
 - Etsiä postauksia otsikon perusteella
@@ -34,7 +35,7 @@ Suorita repositorion juuressa:
 
 2. source venv/bin/activate
 
-3. pip install -r requirements.txt
+3. pip install flask
 
 4. sqlite3 database.db < schema.sql
 
