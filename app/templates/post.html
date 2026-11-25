@@ -9,16 +9,29 @@
   <p><b>Content:</b> {{ post.content }}</p>
   <p><b>Likes:</b> {{ likes }}</p>
   <p><b>User:</b> {{ author }}</p>
-  <a href="/like/{{ post.id }}">Like</a>
+
+  <form action="/like/{{ post.id }}" method="post">
+    <button type="submit">Like</button>
+  </form>
+  {% if owner %}
+    <form action="/delete/{{ post.id }}" method="post">
+      <button type="submit">Delete Post</button>
+    </form>
+  {% endif %}
   <ul>
     {% for comment in comments %}
       <li><b>{{ comment.author }}:</b> {{ comment.content }}</li>
+      {% if session.get("user_id") == comment.user_id %}
+        <form action="/delete_comment/{{ comment.id }}" method="post">
+          <button type="submit">Delete Comment</button>
+        </form>
+      {% endif %}
     {% endfor %}
   </ul>
   <h2>Comments</h2>
   <form action="/comment/{{ post.id }}" method="post">
     <label for="comment">Add a Comment:</label><br>
-    <textarea id="comment" name="comment" required></textarea><br><br>
+    <textarea id="comment" name="content" required></textarea><br><br>
     <input type="submit" value="Submit Comment">
   </form>
   <a href="/">Back to Home</a>

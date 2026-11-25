@@ -8,10 +8,24 @@
 <body>
   <h1>Welcome to the Image Board</h1>
   <p>This is the main page of the image board.</p>
-  <p>Welcome, {{ username }}!</p>
+  <p><i>Logged in as {{ username }}</i></p>
   <a href="/new">Create a New Post</a>
   <a href="/logout">Logout</a>
-  <h2>Recent Posts</h2>
+  <p></p>
+  <form action="/" method="get">
+    <label for="title-search">Search posts by title:</label>
+    <input type="search" id="title-search" name="q" value="{{ search_query }}">
+    <label for="sort">Sort by:</label>
+    <select id="sort" name="sort">
+      <option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
+      <option value="oldest" {% if sort_by == "oldest" %}selected{% endif %}>Oldest</option>
+      <option value="most_liked" {% if sort_by == "most_liked" %}selected{% endif %}>Most liked</option>
+    </select>
+    <button type="submit">Apply</button>
+    {% if search_query %}
+      <a href="/">Clear</a>
+    {% endif %}
+  </form>
   <ul>
     {% for post in posts %}
       <li><b><a href="/post/{{ post.id }}">{{ post.title }}</a></b>: {{ post.content }}</li>
