@@ -1,3 +1,5 @@
+import os
+
 secret_key = "your_secret_key_here"
 
 #secret key should be in environment variables
