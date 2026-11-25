@@ -6,6 +6,7 @@ from flask import (
     abort,
     redirect,
     render_template,
+    flash,
     request,
     session,
 )
@@ -59,17 +60,28 @@ def send():
     username = session.get("username")
     file = request.files.get("picture")
     if not title:
-        return "Error: Title cannot be empty", 400
+        flash("Error: Title cannot be empty", "error")
+        return redirect("/new")
+    if len(title) > 100:
+        flash("Error: Title cannot exceed 100 characters", "error")
+        return redirect("/new")
     if not content:
-        return "Error: Content cannot be empty", 400
+        flash("Error: Content cannot be empty", "error")
+        return redirect("/new")
+    if len(content) > 1000:
+        flash("Error: Content cannot exceed 1000 characters", "error")
+        return redirect("/new")
 
     if file is None or not file.filename:
-        return "Error: No image uploaded", 400
+        flash("Error: No image uploaded", "error")
+        return redirect("/new")
     if not file.filename.lower().endswith(".jpg"):
-        return "Error: Only JPG images are allowed", 400
+        flash("Error: Only JPG images are allowed", "error")
+        return redirect("/new")
     image = file.read()
     if len(image) > 100 * 1024:
-        return "Error: Image size exceeds 100KB limit", 400
+        flash("Error: Image size exceeds 100KB limit", "error")
+        return redirect("/new")
 
     posts.create_post(title, content, username, image)
     return redirect("/")
@@ -97,7 +109,8 @@ def post(post_id):
             username=session.get("username"),
             owner=owner,
         )
-    return "Post not found", 404
+    flash("Post not found", "error")
+    return redirect("/")
 
 
 @app.route("/post/<int:post_id>/picture")
@@ -112,12 +125,16 @@ def post_picture(post_id):
 def delete(post_id):
     check_csrf()
     post_rows = posts.get_post_user_id(post_id)
+    if not post_rows:
+        flash("Post not found", "error")
+        return redirect("/")
     post_user_id = post_rows[0]["user_id"] if post_rows else None
     user_id = session.get("user_id")
     if post_user_id == user_id:
         posts.delete_post(post_id)
     else:
-        return "You are not authorized to delete this post", 403
+        flash("You are not authorized to delete this post", "error")
+        return redirect(f"/post/{post_id}")
     return redirect("/")
 
 
@@ -128,7 +145,8 @@ def comment(post_id):
     user_id = session.get("user_id")
 
     if not content:
-        return "Error: Comment content cannot be empty", 400
+        flash("Error: Comment content cannot be empty", "error")
+        return redirect(f"/post/{post_id}")
 
     posts.create_comment(post_id, content, user_id)
     return redirect(f"/post/{post_id}")
@@ -142,9 +160,11 @@ def delete_comment(comment_id):
     post_id = comment_rows[0]["post_id"] if comment_rows else None
     user_id = session.get("user_id")
     if comment_user_id == user_id:
+        flash("Comment deleted successfully", "success")
         posts.delete_comment(comment_id)
     else:
-        return "You are not authorized to delete this comment", 403
+        flash("You are not authorized to delete this comment", "error")
+        return redirect(f"/post/{post_id}")
     return redirect(f"/post/{post_id}")
 
 
@@ -173,24 +193,30 @@ def send_user():
     password1 = request.form["password1"]
     password2 = request.form["password2"]
 
-    if username == "":
-        return "Username cannot be empty", 400
+    if not username:
+        flash("Username cannot be empty", "error")
+        return redirect("/new_user")
 
-    if password1 == "" or password2 == "":
-        return "Password cannot be empty", 400
+    if not password1 or not password2:
+        flash("Password cannot be empty", "error")
+        return redirect("/new_user")
 
     if len(username) < 4:
-        return "Username must be at least 4 characters long", 400
+        flash("Username must be at least 4 characters long", "error")
+        return redirect("/new_user")
 
     if len(password1) < 8:
-        return "Password must be at least 8 characters long", 400
+        flash("Password must be at least 8 characters long", "error")
+        return redirect("/new_user")
 
     if password1 != password2:
-        return "Passwords do not match", 400
+        flash("Passwords do not match", "error")
+        return redirect("/new_user")
 
     hashed_password = generate_password_hash(password1)
     if not users.create_user(username, hashed_password):
-        return "Username already exists", 400
+        flash("Username already exists", "error")
+        return redirect("/new_user")
 
     return redirect("/")
 
@@ -213,7 +239,8 @@ def send_login():
         session["user_id"] = user[0]["id"]
         session["csrf_token"] = secrets.token_hex(16)
         return redirect("/")
-    return "ERROR: Invalid username or password", 401
+    flash("Invalid username or password", "error")
+    return redirect("/login")
 
 
 @app.route("/logout", methods=["POST"])
