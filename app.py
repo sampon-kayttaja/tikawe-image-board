@@ -26,12 +26,14 @@ def check_csrf():
     if request.form["csrf_token"] != session["csrf_token"]:
         abort(403)
 
+
 @app.before_request
 def require_login():
     if request.endpoint in ["login", "send_login", "new_user", "send_user"]:
         return
     if "username" not in session:
         return redirect("/login")
+
 
 @app.route("/")
 def index():
@@ -134,6 +136,7 @@ def edit(post_id):
         return redirect(f"/post/{post_id}")
     return render_template("edit_post.html", post=post_rows[0])
 
+
 @app.route("/update_post/<int:post_id>", methods=["POST"])
 def update_post(post_id):
     check_csrf()
@@ -165,6 +168,7 @@ def update_post(post_id):
 
     posts.update_post(post_id, title, content)
     return redirect(f"/post/{post_id}")
+
 
 @app.route("/delete/<int:post_id>", methods=["POST"])
 def delete(post_id):
@@ -275,6 +279,10 @@ def login():
 def send_login():
     username = request.form["username"]
     password = request.form["password"]
+
+    if not username or not password:
+        flash("Input your username and password", "error")
+        return redirect("/login")
 
     user = users.get_user_by_username(username)
 
