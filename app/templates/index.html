@@ -17,7 +17,7 @@
       </select>
     </div>
     <div class="form-actions">
-      <button type="submit">Apply</button>
+      <button type="submit" style="margin-bottom: 10px">Apply</button>
       {% if search_query %}<a class="button button-secondary" href="/">Clear</a>{% endif %}
     </div>
   </form>
@@ -25,8 +25,9 @@
   {% if posts %}
     <section class="post-list" aria-label="Posts">
       {% for post in posts %}
-        <article class="post-card">
-          <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>
+        <article class="post-card" style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
+          <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
+          <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>  
           <p>{{ post.content }}</p>
           <div class="post-meta">{{ post.like_count }} {{ "like" if post.like_count == 1 else "likes" }} · <a href="/post/{{ post.id }}">View post & comments →</a></div>
         </article>
@@ -36,11 +37,8 @@
     <div class="panel empty-state">
       {% if search_query %}
         <h2>No posts found</h2>
-        <p>Try another search, or <a href="/">browse all posts</a>.</p>
       {% else %}
-        <h2>The board is waiting for its first post</h2>
-        <p>Share something to get the conversation started.</p>
-        <a class="button" href="/new">Create a post</a>
+        <h2>No posts yet</h2>
       {% endif %}
     </div>
   {% endif %}

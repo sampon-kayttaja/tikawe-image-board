@@ -1,6 +1,6 @@
 import secrets
 
-from flask import Flask, abort
+from flask import Flask, Response, abort
 from flask import redirect, render_template, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import config
@@ -13,7 +13,9 @@ app.secret_key = config.secret_key
 
 @app.before_request
 def before_request():
-    csrf_token = session.get("csrf_token")
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_hex(16)
+    csrf_token = session["csrf_token"]
     if request.method not in {"GET", "HEAD", "OPTIONS"}:
         submitted_token = request.form.get("csrf_token")
         if not submitted_token or not secrets.compare_digest(
@@ -40,6 +42,7 @@ def index():
 
     sql = """
         SELECT posts.id, posts.title, posts.content,
+               posts.picture IS NOT NULL AS has_picture,
                (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count
         FROM posts
     """
@@ -68,7 +71,22 @@ def send():
     content = request.form["content"]
     title = request.form["title"]
     username = session.get("username")
-    db.execute("INSERT INTO posts (title, content, user_id) VALUES (?, ?, (SELECT id FROM users WHERE username = ?))", [title, content, username])
+    file = request.files.get("picture")
+    if file is None or not file.filename:
+        return "Error: No image uploaded", 400
+    if not file.filename.lower().endswith(".jpg"):
+        return "Error: Only JPG images are allowed", 400
+    image = file.read()
+    if len(image) > 100 * 1024:
+        return "Error: Image size exceeds 100KB limit", 400
+    
+    db.execute(
+        """
+        INSERT INTO posts (title, content, user_id, picture)
+        VALUES (?, ?, (SELECT id FROM users WHERE username = ?), ?)
+        """,
+        [title, content, username, image],
+    )
     return redirect("/")
 
 # VIEW POST
@@ -76,15 +94,37 @@ def send():
 @app.route("/post/<int:post_id>")
 def post(post_id):
     post = db.query("SELECT id, title, content, user_id FROM posts WHERE id = ?", [post_id])
-    comments = db.query("SELECT comments.id, comments.post_id, comments.content, comments.user_id, users.username AS author FROM comments JOIN users ON comments.user_id = users.id WHERE comments.post_id = ?", [post_id])
+    comments = db.query(
+        "SELECT comments.id, comments.post_id, comments.content, "
+        "comments.user_id, users.username AS author "
+        "FROM comments "
+        "JOIN users ON comments.user_id = users.id "
+        "WHERE comments.post_id = ?",
+        [post_id],
+    )
     likes = db.query("SELECT COUNT(*) as like_count FROM likes WHERE post_id = ?", [post_id])
     like_count = likes[0][0]
     author = db.query("SELECT username FROM users WHERE id = ?", [post[0]["user_id"]]) if post else None
     owner = session.get("user_id") == post[0]["user_id"] if post else False
-    
+
     if post:
-        return render_template("post.html", post=post[0], comments=comments, likes=like_count, author=author[0]["username"] if author else None, username=session.get("username"), owner=owner)
+        return render_template(
+            "post.html",
+            post=post[0],
+            comments=comments,
+            likes=like_count,
+            author=author[0]["username"],
+            username=session.get("username"),
+            owner=owner,
+        )
     return "Post not found", 404
+
+@app.route("/post/<int:post_id>/picture")
+def post_picture(post_id):
+    rows = db.query("SELECT picture FROM posts WHERE id = ?", [post_id])
+    if not rows or rows[0]["picture"] is None:
+        abort(404)
+    return Response(rows[0]["picture"], mimetype="image/jpeg")
 
 @app.route("/delete/<int:post_id>", methods=["POST"])
 def delete(post_id):
@@ -189,4 +229,5 @@ def send_login():
 def logout():
     session.pop("username", None)
     session.pop("user_id", None)
+    session.pop("csrf_token", None)
     return redirect("/login")

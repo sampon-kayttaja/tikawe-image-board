@@ -6,7 +6,6 @@
 {% block content %}
   <section class="panel form-panel">
     <h1>Create an account</h1>
-    <p class="subtitle">A name and password are all you need to get started.</p>
     <form action="/send_user" method="post">
       <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
       <div class="field">

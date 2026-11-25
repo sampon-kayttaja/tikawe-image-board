@@ -7,7 +7,7 @@
         id INTEGER PRIMARY KEY,
         title TEXT,
         content TEXT,
-        picture TEXT default NULL,
+        picture BLOB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         user_id INTEGER
     );

@@ -1,5 +1,7 @@
 # tikawe-image-board
 
+Suunnitelma:
+
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
 - Käyttäjä pystyy lisäämään, muokkaamaan ja poistamaan postauksia.
 - Käyttäjä pystyy lisäämään kuvia tai videoita postauksiin.
@@ -10,12 +12,23 @@
 - Käyttäjä pystyy tykkäämään postauksista.
 - Käyttäjä pystyy kommentoimaan postauksiin.
 - Sovelluksen tarkoitus on olla instagram tyylinen kuvien ja videoitten jakamis palvelu.
+- Käyttäjä voi seurata muiden tilejä ja nähdä näiden postaukset etusivulla
 
+
+Sovelluksessa pystyy tällä hetkellä:
+
+- Luoda käyttäjän
+- Kirjautua sisään ja ulos
+- Luoda postauksen ja poistaa oman postauksen
+- Tykätä postauksista ja poistaa oman tykkäyksen
+- Kommentoida ja poistaa oman kommentin
+- Etsiä postauksia otsikon perusteella
+- Järjestää postaukset tykkäysten ja julkaisu ajan perusteella
 
 
 # sovelluksen käynnistäminen
 
-suorita repositorion juuressa:
+Suorita repositorion juuressa:
 
 1. python3 -m venv venv
 
@@ -28,5 +41,3 @@ suorita repositorion juuressa:
 5. sqlite3 instance/database.db < app/schema.sql
 
 6. flask run
-
-
