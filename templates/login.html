@@ -1,23 +1,21 @@
 {% extends "layout.html" %}
 
 {% block title %}Log in{% endblock %}
-{% block page_class %}page-narrow{% endblock %}
-
 {% block content %}
-  <section class="panel form-panel">
+  <section class="form-panel">
     <h1>Log in</h1>
     <form action="/send_login" method="post">
       <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-      <div class="field">
+      <div>
         <label for="username">Username</label>
         <input type="text" id="username" name="username" autocomplete="username" required>
       </div>
-      <div class="field">
+      <div>
         <label for="password">Password</label>
         <input type="password" id="password" name="password" autocomplete="current-password" required>
       </div>
       <button type="submit">Log in</button>
     </form>
-    <p class="form-footer">Don't have an account? <a href="/new_user">Create one</a>.</p>
+    <p>Don't have an account? <a href="/new_user">Create one</a>.</p>
   </section>
 {% endblock %}

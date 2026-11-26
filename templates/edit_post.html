@@ -4,17 +4,17 @@
 
 {% block content %}
   <h2>Edit Post</h2>
-  <form class="panel" action="/update_post/{{ post.id }}" method="post" enctype="multipart/form-data">
+  <form action="/update_post/{{ post.id }}" method="post" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-    <div class="field">
+    <div>
       <label for="title">Title</label>
       <input type="text" id="title" name="title" value="{{ post.title }}" required>
     </div>
-    <div class="field">
+    <div>
       <label for="content">Content</label>
       <textarea id="content" name="content" rows="4" required>{{ post.content }}</textarea>
     </div>
-    <div class="field">
+    <div>
       <label for="topic">Topic</label>
       <select id="topic" name="topic" required>
         <option value="">Select a topic</option>

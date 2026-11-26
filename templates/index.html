@@ -3,12 +3,12 @@
 {% block title %}Image Board{% endblock %}
 
 {% block content %}
-  <form class="panel toolbar" action="/" method="get">
-    <div class="field">
+  <form class="toolbar" action="/" method="get">
+    <div>
       <label for="title-search">Search posts</label>
       <input type="search" id="title-search" name="q" value="{{ search_query }}">
     </div>
-    <div class="field">
+    <div>
       <label for="sort">Sort by</label>
       <select id="sort" name="sort">
         <option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest</option>
@@ -16,7 +16,7 @@
         <option value="most_liked" {% if sort_by == "most_liked" %}selected{% endif %}>Most liked</option>
       </select>
     </div>
-    <div class="field">
+    <div>
       <label for="topic">Filter by topic</label>
       <select id="topic" name="topic">
         <option value="" {% if not topic_filter %}selected{% endif %}>All topics</option>
@@ -27,19 +27,19 @@
     </div>
     <div class="form-actions">
       <button type="submit">Apply</button>
-      {% if search_query or topic_filter %}<a class="button button-secondary" href="/">Clear</a>{% endif %}
+      {% if search_query or topic_filter %}<a href="/">Clear</a>{% endif %}
     </div>
   </form>
 
   {% if posts %}
-    <section class="post-list" aria-label="Posts">
+    <section aria-label="Posts">
       {% for post in posts %}
         <article class="post-card">
           <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}">
           <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>
-          <p class="detail-content">{{ post.content }}</p>
-          <div class="detail-content">Created by: <a href="/user/{{ post.username }}">{{ post.username }}</a></div>
-          <div class="detail-topic">Topic: {{ post.topic }}</div>
+          <p>{{ post.content }}</p>
+          <div>Created by: <a href="/user/{{ post.username }}">{{ post.username }}</a></div>
+          <div>Topic: {{ post.topic }}</div>
           <div class="post-meta">
             {{ post.like_count }} {{ "like" if post.like_count == 1 else "likes" }} ·
             <form action="/like/{{ post.id }}" method="post">
@@ -53,7 +53,7 @@
       {% endfor %}
     </section>
   {% else %}
-    <div class="panel empty-state">
+    <div>
       {% if search_query %}
         <h2>No posts found</h2>
       {% else %}

@@ -1,20 +1,18 @@
 {% extends "layout.html" %}
 
 {% block title %}{{ post.title }}{% endblock %}
-{% block page_class %}page-narrow{% endblock %}
-
 {% block content %}
-  <article class="panel form-panel">
+  <article class="form-panel">
     <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}">
     <h1>{{ post.title }}</h1>
-    <div class="detail-content">{{ post.content }}</div>
-    <div class="detail-author"><a href="/user/{{ author }}">{{ author }}</a></div>
-    <div class="detail-topic">Topic: {{ post.topic }}</div>
-    <div class="detail-created">Created at: {{ post.created_at }}</div>
-    <div class="detail-likes">
+    <div>{{ post.content }}</div>
+    <div><a href="/user/{{ author }}">{{ author }}</a></div>
+    <div>Topic: {{ post.topic }}</div>
+    <div>Created at: {{ post.created_at }}</div>
+    <div>
       <span>{{ likes }} {{ "like" if likes == 1 else "likes" }}</span>
     </div>
-    <div class="detail-actions">
+    <div>
       <form action="/like/{{ post.id }}" method="post">
         <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
         <button type="submit">♥ Like</button>
@@ -25,33 +23,33 @@
         </form>
         <form action="/delete/{{ post.id }}" method="post">
           <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-          <button class="button-danger" type="submit">Delete post</button>
+          <button type="submit">Delete post</button>
         </form>
       {% endif %}
     </div>
 
-    <h2 class="section-heading">Comments{% if comments %} · {{ comments|length }}{% endif %}</h2>
+    <h2>Comments{% if comments %} · {{ comments|length }}{% endif %}</h2>
     {% if comments %}
-      <ul class="comment-list">
+      <ul>
         {% for comment in comments %}
-          <li class="comment">
+          <li>
             <p><strong>{{ comment.author }}</strong><br>{{ comment.content }}</p>
             {% if session.get("user_id") == comment.user_id %}
               <form action="/delete_comment/{{ comment.id }}" method="post">
                 <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                <button class="button-danger" type="submit">Delete</button>
+                <button type="submit">Delete</button>
               </form>
             {% endif %}
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p class="subtitle">No comments yet.</p>
+      <p>No comments yet.</p>
     {% endif %}
 
     <form action="/comment/{{ post.id }}" method="post">
       <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-      <div class="field">
+      <div>
         <label for="comment">Add a comment</label>
         <textarea id="comment" name="content" required></textarea>
       </div>

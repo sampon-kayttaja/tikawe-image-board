@@ -1,27 +1,25 @@
 {% extends "layout.html" %}
 
 {% block title %}Create account{% endblock %}
-{% block page_class %}page-narrow{% endblock %}
-
 {% block content %}
-  <section class="panel form-panel">
+  <section>
     <h1>Create an account</h1>
     <form action="/send_user" method="post">
       <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-      <div class="field">
+      <div>
         <label for="username">Username</label>
         <input type="text" id="username" name="username" autocomplete="username" minlength="4" required>
       </div>
-      <div class="field">
+      <div>
         <label for="password1">Password</label>
         <input type="password" id="password1" name="password1" autocomplete="new-password" minlength="8" required>
       </div>
-      <div class="field">
+      <div>
         <label for="password2">Confirm password</label>
         <input type="password" id="password2" name="password2" autocomplete="new-password" minlength="8" required>
       </div>
       <button type="submit">Create account</button>
     </form>
-    <p class="form-footer">Already have an account? <a href="/login">Log in</a>.</p>
+    <p>Already have an account? <a href="/login">Log in</a>.</p>
   </section>
 {% endblock %}

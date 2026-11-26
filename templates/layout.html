@@ -49,9 +49,9 @@
   <main>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="flash-messages" aria-live="polite">
+        <div aria-live="polite">
           {% for category, message in messages %}
-            <p class="flash-message flash-{{ category }}"
+            <p
               role="{{ 'alert' if category == 'error' else 'status' }}">
               {{ message }}
             </p>
