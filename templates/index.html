@@ -30,7 +30,17 @@
       {% if search_query or topic_filter %}<a href="/">Clear</a>{% endif %}
     </div>
   </form>
-
+  {% if pages_amount > 1 %}
+    <nav aria-label="Pagination">
+      {% if page > 1 %}
+        <a href="{{ url_for('index', page=page - 1, q=search_query, sort=sort_by, topic=topic_filter) }}" aria-label="Previous page">← Previous</a>
+      {% endif %}
+      <span>Page {{ page }} of {{ pages_amount }}</span>
+      {% if page < pages_amount %}
+        <a href="{{ url_for('index', page=page + 1, q=search_query, sort=sort_by, topic=topic_filter) }}" aria-label="Next page">Next →</a>
+      {% endif %}
+    </nav>
+  {% endif %}
   {% if posts %}
     <section aria-label="Posts">
       {% for post in posts %}
