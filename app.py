@@ -29,13 +29,12 @@ def check_csrf():
 
 @app.before_request
 def require_login():
-    if request.endpoint in ["login", "send_login", "new_user", "send_user"]:
-        return
-    if "username" not in session:
+    if request.endpoint not in ["login", "send_login", "new_user", "send_user"] and session.get("username") is None:
         return redirect("/login")
 
 @app.route("/")
-def index():
+@app.route("/<int:page>")
+def index(page=1):
     search_query = request.args.get("q", "").strip()
     sort_by = request.args.get("sort", "newest")
     topic_filter = request.args.get("topic", "").strip()
@@ -43,7 +42,22 @@ def index():
     if topic_filter not in TOPICS:
         topic_filter = ""
 
-    post_rows = posts.get_posts(search_query, sort_by, topic_filter)
+    page_size = 10
+    posts_amount = posts.get_posts_count(search_query, topic_filter)
+    pages_amount = max(1, (posts_amount + page_size - 1) // page_size)
+
+    if page < 1:
+        return redirect("/")
+    if page > pages_amount:
+        return redirect(f"/{pages_amount}")
+
+    post_rows = posts.get_posts(
+        search_query,
+        sort_by,
+        topic=topic_filter,
+        page=page,
+        page_size=page_size,
+    )
     return render_template(
         "index.html",
         posts=post_rows,
@@ -52,6 +66,8 @@ def index():
         sort_by=sort_by,
         topic_filter=topic_filter,
         topics=TOPICS,
+        page=page,
+        pages_amount=pages_amount,
     )
 
 @app.route("/new")

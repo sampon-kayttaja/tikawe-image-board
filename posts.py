@@ -1,6 +1,6 @@
 import db
 
-def get_posts(search_query, sort_by, topic=None):
+def get_posts(search_query, sort_by, page, page_size, topic=None,):
     sort_orders = {
         "newest": "posts.created_at DESC, posts.id DESC",
         "oldest": "posts.created_at ASC, posts.id ASC",
@@ -27,7 +27,8 @@ def get_posts(search_query, sort_by, topic=None):
         params.append(topic)
     if conditions:
         sql += " WHERE " + " AND ".join(conditions)
-    sql += f" ORDER BY {sort_orders[sort_by]} LIMIT 100"
+    sql += f" ORDER BY {sort_orders[sort_by]} LIMIT ? OFFSET ?"
+    params.extend([page_size, (page - 1) * page_size])
     return db.query(sql, params)
 
 def create_post(title, content, topic, username, image):
@@ -111,3 +112,18 @@ def get_posts_by_user(user_id):
         "ORDER BY posts.created_at DESC",
         [user_id],
     )
+
+def get_posts_count(search_query, topic=None):
+    sql = "SELECT COUNT(*) FROM posts"
+    params = []
+    conditions = []
+    if search_query:
+        conditions.append("title LIKE ?")
+        params.append(f"%{search_query}%")
+    if topic:
+        conditions.append("topic = ?")
+        params.append(topic)
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
+    rows = db.query(sql, params)
+    return rows[0][0]
