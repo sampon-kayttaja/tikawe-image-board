@@ -20,6 +20,11 @@ def get_user_by_username(username):
         [username],
     )
 
+def get_user_by_id(user_id):
+    return db.query(
+        "SELECT id, username, password_hash FROM users WHERE id = ?",
+        [user_id],
+    )
 
 def get_username_by_id(user_id):
     return db.query("SELECT username FROM users WHERE id = ?", [user_id])

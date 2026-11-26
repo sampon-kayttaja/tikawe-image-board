@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ user.username }}{% endblock %}
+
+{% block content %}
+    <h2>{{ user.username }}</h2>
+    <p>Total posts: {{ total_posts }}</p>
+    <p>Total likes: {{ total_likes }}</p>
+    {% if posts %}
+        <section class="post-list" aria-label="Posts by {{ user.username }}">
+        {% for post in posts %}
+            <article class="post-card" style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
+            <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
+            <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>
+            <p>{{ post.content }}</p>
+            <div class="post-meta">{{ post.like_count }} {{ "like" if post.like_count == 1 else "likes" }} · <a href="/post/{{ post.id }}">View post & comments →</a></div>
+            </article>
+        {% endfor %}
+        </section>
+    {% else %}
+        <div class="panel empty-state">
+        <h2>No posts yet</h2>
+        </div>
+    {% endif %}
+
+{% endblock %}

@@ -13,6 +13,7 @@
         <p>Logged in as {{ session.get("username") }}</p>
         <a href="/">Home</a> |
         <a href="/new">New post</a> |
+        <a href="/user/{{ session.get('username') }}">My posts</a> |
         <form action="/logout" method="post">
           <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
           <button type="submit">Log out</button>

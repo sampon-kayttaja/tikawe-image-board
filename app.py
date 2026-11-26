@@ -13,8 +13,8 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import config
-import posts as posts
-import users as users
+import posts
+import users
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -99,6 +99,7 @@ def post(post_id):
         if post_rows
         else None
     )
+    
     owner = session.get("user_id") == post_rows[0]["user_id"] if post_rows else False
 
     if post_rows:
@@ -301,3 +302,23 @@ def logout():
     del session["username"]
     del session["user_id"]
     return redirect("/login")
+
+
+@app.route("/user/<username>")
+def profile(username):
+    user = users.get_user_by_username(username)
+    if not user:
+        flash("User not found", "error")
+        return redirect("/")
+    user_id = user[0]["id"]
+    user_posts = posts.get_posts_by_user(user_id)
+    total_posts = len(user_posts)
+    total_likes = sum(posts.get_like_count(post["id"]) for post in user_posts)
+    return render_template(
+        "user.html", 
+        user=user[0], 
+        posts=user_posts,
+        total_posts=total_posts,
+        total_likes=total_likes,
+        username=session.get("username")
+    )

@@ -12,9 +12,11 @@ def get_posts(search_query, sort_by):
 
     sql = """
         SELECT posts.id, posts.title, posts.content,
+               users.username,
                posts.picture IS NOT NULL AS has_picture,
                (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count
         FROM posts
+        LEFT JOIN users ON posts.user_id = users.id
     """
     params = []
     if search_query:
@@ -107,4 +109,10 @@ def update_post(post_id, title, content):
     db.execute(
         "UPDATE posts SET title = ?, content = ? WHERE id = ?",
         [title, content, post_id],
+    )
+
+def get_posts_by_user(user_id):
+    return db.query(
+        "SELECT id, title, content FROM posts WHERE user_id = ? ORDER BY created_at DESC",
+        [user_id],
     )
