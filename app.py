@@ -19,7 +19,7 @@ import users
 app = Flask(__name__)
 app.secret_key = config.secret_key
 
-TOPICS = ["Nature", "Art", "Travel", "Food", "Sports", "Music", "Fashion", "Other"]
+TOPICS = ("Nature", "Art", "Travel", "Food", "Sports", "Music", "Fashion", "Other")
 
 
 def check_csrf():
@@ -41,13 +41,18 @@ def require_login():
 def index():
     search_query = request.args.get("q", "").strip()
     sort_by = request.args.get("sort", "newest")
-    post_rows = posts.get_posts(search_query, sort_by)
+    topic_filter = request.args.get("topic", "").strip()
+    if topic_filter not in TOPICS:
+        topic_filter = ""
+    post_rows = posts.get_posts(search_query, sort_by, topic_filter)
     return render_template(
         "index.html",
         posts=post_rows,
         username=session["username"],
         search_query=search_query,
         sort_by=sort_by,
+        topic_filter=topic_filter,
+        topics=TOPICS,
     )
 
 

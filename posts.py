@@ -1,7 +1,7 @@
 import db
 
 
-def get_posts(search_query, sort_by):
+def get_posts(search_query, sort_by, topic=None):
     sort_orders = {
         "newest": "posts.created_at DESC, posts.id DESC",
         "oldest": "posts.created_at ASC, posts.id ASC",
@@ -19,9 +19,15 @@ def get_posts(search_query, sort_by):
         LEFT JOIN users ON posts.user_id = users.id
     """
     params = []
+    conditions = []
     if search_query:
-        sql += " WHERE posts.title LIKE ?"
+        conditions.append("posts.title LIKE ?")
         params.append(f"%{search_query}%")
+    if topic:
+        conditions.append("posts.topic = ?")
+        params.append(topic)
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
     sql += f" ORDER BY {sort_orders[sort_by]}"
     return db.query(sql, params)
 

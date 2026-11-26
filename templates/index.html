@@ -16,9 +16,18 @@
         <option value="most_liked" {% if sort_by == "most_liked" %}selected{% endif %}>Most liked</option>
       </select>
     </div>
+    <div class="field">
+      <label for="topic">Filter by topic</label>
+      <select id="topic" name="topic">
+        <option value="" {% if not topic_filter %}selected{% endif %}>All topics</option>
+        {% for topic in topics %}
+          <option value="{{ topic }}" {% if topic_filter == topic %}selected{% endif %}>{{ topic }}</option>
+        {% endfor %}
+      </select>
+    </div>
     <div class="form-actions">
       <button type="submit" style="margin-bottom: 10px">Apply</button>
-      {% if search_query %}<a class="button button-secondary" href="/">Clear</a>{% endif %}
+      {% if search_query or topic_filter %}<a class="button button-secondary" href="/">Clear</a>{% endif %}
     </div>
   </form>
 
