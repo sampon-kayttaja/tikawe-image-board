@@ -28,15 +28,18 @@
         <article class="post-card" style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
           <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
           <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>  
-          <p>{{ post.content }}</p>
-          <p>
-            {% if post.username %}
-              <a href="/user/{{ post.username }}">{{ post.username }}</a>
-            {% else %}
-              Unknown user
-            {% endif %}
-          </p>
-          <div class="post-meta">{{ post.like_count }} {{ "like" if post.like_count == 1 else "likes" }} · <a href="/post/{{ post.id }}">View post & comments →</a></div>
+          <p class="detail-content">{{ post.content }}</p>
+          <div class="detail-content">Created by: <a href="/user/{{ post.username }}">{{ post.username }}</a></div>
+          <div class="detail-topic">Topic: {{ post.topic }}</div>
+          <div class="post-meta">
+            {{ post.like_count }} {{ "like" if post.like_count == 1 else "likes" }} ·
+            <form action="/like/{{ post.id }}" method="post" style="display: inline;">
+              <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+              <input type="hidden" name="return_to" value="/">
+              <button type="submit">♥ Like</button>
+            </form>
+            · <a href="/post/{{ post.id }}">View post & comments →</a>
+          </div>
         </article>
       {% endfor %}
     </section>

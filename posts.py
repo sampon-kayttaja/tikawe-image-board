@@ -11,7 +11,7 @@ def get_posts(search_query, sort_by):
         sort_by = "newest"
 
     sql = """
-        SELECT posts.id, posts.title, posts.content,
+        SELECT posts.id, posts.title, posts.content, posts.topic,
                users.username,
                posts.picture IS NOT NULL AS has_picture,
                (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count
@@ -26,19 +26,19 @@ def get_posts(search_query, sort_by):
     return db.query(sql, params)
 
 
-def create_post(title, content, username, image):
+def create_post(title, content, topic, username, image):
     db.execute(
         """
-        INSERT INTO posts (title, content, user_id, picture)
-        VALUES (?, ?, (SELECT id FROM users WHERE username = ?), ?)
+        INSERT INTO posts (title, content, topic, user_id, picture)
+        VALUES (?, ?, ?, (SELECT id FROM users WHERE username = ?), ?)
         """,
-        [title, content, username, image],
+        [title, content, topic, username, image],
     )
 
 
 def get_post(post_id):
     return db.query(
-        "SELECT id, title, content, user_id FROM posts WHERE id = ?", [post_id]
+        "SELECT id, title, content, topic, user_id, created_at FROM posts WHERE id = ?", [post_id]
     )
 
 
@@ -105,14 +105,18 @@ def remove_like(post_id, user_id):
     db.execute("DELETE FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id])
 
 
-def update_post(post_id, title, content):
+def update_post(post_id, title, content, topic):
     db.execute(
-        "UPDATE posts SET title = ?, content = ? WHERE id = ?",
-        [title, content, post_id],
+        "UPDATE posts SET title = ?, content = ?, topic = ? WHERE id = ?",
+        [title, content, topic, post_id],
     )
 
 def get_posts_by_user(user_id):
     return db.query(
-        "SELECT id, title, content FROM posts WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT posts.id, posts.title, posts.content, posts.topic, posts.created_at, "
+        "(SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count "
+        "FROM posts "
+        "WHERE posts.user_id = ? "
+        "ORDER BY posts.created_at DESC",
         [user_id],
     )

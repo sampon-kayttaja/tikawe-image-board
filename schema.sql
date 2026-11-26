@@ -7,6 +7,7 @@
         id INTEGER PRIMARY KEY,
         title TEXT,
         content TEXT,
+        topic TEXT,
         picture BLOB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         user_id INTEGER

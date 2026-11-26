@@ -19,6 +19,8 @@ import users
 app = Flask(__name__)
 app.secret_key = config.secret_key
 
+TOPICS = ["Nature", "Art", "Travel", "Food", "Sports", "Music", "Fashion", "Other"]
+
 
 def check_csrf():
     if "csrf_token" not in request.form:
@@ -61,6 +63,7 @@ def send():
     title = request.form["title"]
     username = session.get("username")
     file = request.files.get("picture")
+    topic = request.form.get("topic", "").strip()
     if not title:
         flash("Error: Title cannot be empty", "error")
         return redirect("/new")
@@ -72,6 +75,9 @@ def send():
         return redirect("/new")
     if len(content) > 1000:
         flash("Error: Content cannot exceed 1000 characters", "error")
+        return redirect("/new")
+    if topic not in TOPICS:
+        flash("Error: Please select a valid topic", "error")
         return redirect("/new")
 
     if file is None or not file.filename:
@@ -85,7 +91,7 @@ def send():
         flash("Error: Image size exceeds 100KB limit", "error")
         return redirect("/new")
 
-    posts.create_post(title, content, username, image)
+    posts.create_post(title, content, topic, username, image)
     return redirect("/")
 
 
@@ -153,6 +159,7 @@ def update_post(post_id):
 
     title = request.form["title"]
     content = request.form["content"]
+    topic = request.form.get("topic", "").strip()
 
     if not title:
         flash("Error: Title cannot be empty", "error")
@@ -166,8 +173,11 @@ def update_post(post_id):
     if len(content) > 1000:
         flash("Error: Content cannot exceed 1000 characters", "error")
         return redirect(f"/edit_post/{post_id}")
+    if topic not in TOPICS:
+        flash("Error: Please select a valid topic", "error")
+        return redirect(f"/edit_post/{post_id}")
 
-    posts.update_post(post_id, title, content)
+    posts.update_post(post_id, title, content, topic)
     return redirect(f"/post/{post_id}")
 
 
@@ -227,7 +237,10 @@ def like(post_id):
         posts.add_like(post_id, user_id)
     if existing_like:
         posts.remove_like(post_id, user_id)
-    return redirect(f"/post/{post_id}")
+    return_to = request.form.get("return_to")
+    if not return_to or not return_to.startswith("/") or return_to.startswith("//"):
+        return_to = f"/post/{post_id}"
+    return redirect(return_to)
 
 
 # User Management
