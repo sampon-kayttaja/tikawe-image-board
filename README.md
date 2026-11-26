@@ -24,7 +24,9 @@ Sovelluksessa pystyy tällä hetkellä:
 - Tykätä postauksista ja poistaa oman tykkäyksen
 - Kommentoida ja poistaa oman kommentin
 - Etsiä postauksia otsikon perusteella
+- Filtteröidä postauksia aiheen perusteella
 - Järjestää postaukset tykkäysten ja julkaisu ajan perusteella
+- Nähdä omat ja muiden käyttäjäsivut
 
 
 # sovelluksen käynnistäminen
