@@ -10,6 +10,7 @@ from flask import (
     request,
     session,
 )
+import markupsafe
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import config
@@ -31,6 +32,12 @@ def check_csrf():
 def require_login():
     if request.endpoint not in ["login", "send_login", "new_user", "send_user"] and session.get("username") is None:
         return redirect("/login")
+
+@app.template_filter()
+def show_lines(content):
+    content = str(markupsafe.escape(content))
+    content = content.replace("\n", "<br />")
+    return markupsafe.Markup(content)
 
 @app.route("/")
 @app.route("/<int:page>")
@@ -175,6 +182,9 @@ def update_post(post_id):
     if post_user_id != user_id:
         flash("You are not authorized to edit this post", "error")
         return redirect(f"/post/{post_id}")
+    if topic not in TOPICS:
+        flash("Error: Please select a valid topic", "error")
+        return redirect(f"/edit_post/{post_id}")
 
     title = request.form["title"]
     content = request.form["content"]

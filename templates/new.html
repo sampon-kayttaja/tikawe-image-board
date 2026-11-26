@@ -18,7 +18,7 @@
         <label for="topic">Topic</label>
         <select id="topic" name="topic" required>
           {% for topic in topics %}
-            <option value="{{ topic|lower }}">{{ topic }}</option>
+            <option value="{{ topic }}">{{ topic }}</option>
           {% endfor %}
         </select>
       </div>
