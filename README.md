@@ -28,6 +28,7 @@ Sovelluksessa pystyy tällä hetkellä:
 - Järjestää postaukset tykkäysten ja julkaisu ajan perusteella
 - Nähdä omat ja muiden käyttäjäsivut
 
+Sovellusta voi testata suorittamalla seed.py tiedoston projektin juuressa. Seed.py luo 1000 käyttäjää. 10 000 postausta ja 100 000 kommenttia.
 
 # sovelluksen käynnistäminen
 

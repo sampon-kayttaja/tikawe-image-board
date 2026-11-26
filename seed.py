@@ -10,7 +10,7 @@ db.execute("DELETE FROM likes")
 
 user_count = 1000
 post_count = 10**5
-comment_count = 10**5
+comment_count = 10**6
 likes_count = 10**6
 
 file = open("test_picture.jpg", "rb")
