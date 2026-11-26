@@ -5,7 +5,7 @@
 
 {% block content %}
   <article class="panel form-panel">
-    <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
+    <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}">
     <h1>{{ post.title }}</h1>
     <div class="detail-content">{{ post.content }}</div>
     <div class="detail-author"><a href="/user/{{ author }}">{{ author }}</a></div>

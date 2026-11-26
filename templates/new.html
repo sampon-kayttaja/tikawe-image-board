@@ -6,7 +6,6 @@
 {% block content %}
   <section class="panel form-panel">
     <h1>Create a post</h1>
-    <p class="subtitle">Share an idea, a moment, or something you found interesting.</p>
     <form action="/send" method="post" enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
       <div class="field">

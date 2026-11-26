@@ -26,7 +26,7 @@
       </select>
     </div>
     <div class="form-actions">
-      <button type="submit" style="margin-bottom: 10px">Apply</button>
+      <button type="submit">Apply</button>
       {% if search_query or topic_filter %}<a class="button button-secondary" href="/">Clear</a>{% endif %}
     </div>
   </form>
@@ -34,15 +34,15 @@
   {% if posts %}
     <section class="post-list" aria-label="Posts">
       {% for post in posts %}
-        <article class="post-card" style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
-          <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
-          <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>  
+        <article class="post-card">
+          <img src="/post/{{ post.id }}/picture" alt="{{ post.title }}">
+          <h2><a href="/post/{{ post.id }}">{{ post.title }}</a></h2>
           <p class="detail-content">{{ post.content }}</p>
           <div class="detail-content">Created by: <a href="/user/{{ post.username }}">{{ post.username }}</a></div>
           <div class="detail-topic">Topic: {{ post.topic }}</div>
           <div class="post-meta">
             {{ post.like_count }} {{ "like" if post.like_count == 1 else "likes" }} ·
-            <form action="/like/{{ post.id }}" method="post" style="display: inline;">
+            <form action="/like/{{ post.id }}" method="post">
               <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
               <input type="hidden" name="return_to" value="/">
               <button type="submit">♥ Like</button>
