@@ -69,6 +69,8 @@ def send():
     username = session.get("username")
     file = request.files.get("picture")
     topic = request.form.get("topic", "").strip()
+    content = content.strip()
+    title = title.strip()
     if not title:
         flash("Error: Title cannot be empty", "error")
         return redirect("/new")
@@ -89,6 +91,9 @@ def send():
         flash("Error: No image uploaded", "error")
         return redirect("/new")
     if not file.filename.lower().endswith(".jpg"):
+        flash("Error: Only JPG images are allowed", "error")
+        return redirect("/new")
+    if file.mimetype != "image/jpeg":
         flash("Error: Only JPG images are allowed", "error")
         return redirect("/new")
     image = file.read()
@@ -208,9 +213,13 @@ def comment(post_id):
     check_csrf()
     content = request.form["content"]
     user_id = session.get("user_id")
+    content = content.strip()
 
     if not content:
         flash("Error: Comment content cannot be empty", "error")
+        return redirect(f"/post/{post_id}")
+    if len(content) > 160:
+        flash("Error: Comment content cannot exceed 160 characters", "error")
         return redirect(f"/post/{post_id}")
 
     posts.create_comment(post_id, content, user_id)
@@ -260,7 +269,7 @@ def send_user():
     username = request.form["username"]
     password1 = request.form["password1"]
     password2 = request.form["password2"]
-
+    username = username.strip()
     if not username:
         flash("Username cannot be empty", "error")
         return redirect("/new_user")
@@ -268,13 +277,12 @@ def send_user():
     if not password1 or not password2:
         flash("Password cannot be empty", "error")
         return redirect("/new_user")
-
-    if len(username) < 4:
-        flash("Username must be at least 4 characters long", "error")
+    if len(username) < 4 or len(username) > 16:
+        flash("Username must be between 4 and 16 characters long", "error")
         return redirect("/new_user")
-
-    if len(password1) < 8:
-        flash("Password must be at least 8 characters long", "error")
+    
+    if len(password1) < 8 or len(password1) > 20:
+        flash("Password must be between 8 and 20 characters long", "error")
         return redirect("/new_user")
 
     if password1 != password2:
@@ -317,6 +325,7 @@ def send_login():
 
 @app.route("/logout", methods=["POST"])
 def logout():
+    check_csrf()
     del session["username"]
     del session["user_id"]
     return redirect("/login")
