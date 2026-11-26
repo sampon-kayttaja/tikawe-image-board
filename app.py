@@ -21,13 +21,11 @@ app.secret_key = config.secret_key
 
 TOPICS = ("Nature", "Art", "Travel", "Food", "Sports", "Music", "Fashion", "Other")
 
-
 def check_csrf():
     if "csrf_token" not in request.form:
         abort(403)
     if request.form["csrf_token"] != session["csrf_token"]:
         abort(403)
-
 
 @app.before_request
 def require_login():
@@ -36,14 +34,15 @@ def require_login():
     if "username" not in session:
         return redirect("/login")
 
-
 @app.route("/")
 def index():
     search_query = request.args.get("q", "").strip()
     sort_by = request.args.get("sort", "newest")
     topic_filter = request.args.get("topic", "").strip()
+
     if topic_filter not in TOPICS:
         topic_filter = ""
+
     post_rows = posts.get_posts(search_query, sort_by, topic_filter)
     return render_template(
         "index.html",
@@ -55,11 +54,9 @@ def index():
         topics=TOPICS,
     )
 
-
 @app.route("/new")
 def new():
     return render_template("new.html", topics=TOPICS)
-
 
 @app.route("/send", methods=["POST"])
 def send():
@@ -71,6 +68,7 @@ def send():
     topic = request.form.get("topic", "").strip()
     content = content.strip()
     title = title.strip()
+    
     if not title:
         flash("Error: Title cannot be empty", "error")
         return redirect("/new")
@@ -86,7 +84,6 @@ def send():
     if topic not in TOPICS:
         flash("Error: Please select a valid topic", "error")
         return redirect("/new")
-
     if file is None or not file.filename:
         flash("Error: No image uploaded", "error")
         return redirect("/new")
@@ -104,7 +101,6 @@ def send():
     posts.create_post(title, content, topic, username, image)
     return redirect("/")
 
-
 @app.route("/post/<int:post_id>")
 def post(post_id):
     post_rows = posts.get_post(post_id)
@@ -115,7 +111,7 @@ def post(post_id):
         if post_rows
         else None
     )
-    
+
     owner = session.get("user_id") == post_rows[0]["user_id"] if post_rows else False
 
     if post_rows:
@@ -131,14 +127,12 @@ def post(post_id):
     flash("Post not found", "error")
     return redirect("/")
 
-
 @app.route("/post/<int:post_id>/picture")
 def post_picture(post_id):
     rows = posts.get_picture(post_id)
     if not rows or rows[0]["picture"] is None:
         abort(404)
     return Response(rows[0]["picture"], mimetype="image/jpeg")
-
 
 @app.route("/edit_post/<int:post_id>")
 def edit(post_id):
@@ -152,7 +146,6 @@ def edit(post_id):
         flash("You are not authorized to edit this post", "error")
         return redirect(f"/post/{post_id}")
     return render_template("edit_post.html", post=post_rows[0])
-
 
 @app.route("/update_post/<int:post_id>", methods=["POST"])
 def update_post(post_id):
@@ -190,7 +183,6 @@ def update_post(post_id):
     posts.update_post(post_id, title, content, topic)
     return redirect(f"/post/{post_id}")
 
-
 @app.route("/delete/<int:post_id>", methods=["POST"])
 def delete(post_id):
     check_csrf()
@@ -206,7 +198,6 @@ def delete(post_id):
         flash("You are not authorized to delete this post", "error")
         return redirect(f"/post/{post_id}")
     return redirect("/")
-
 
 @app.route("/comment/<int:post_id>", methods=["POST"])
 def comment(post_id):
@@ -225,7 +216,6 @@ def comment(post_id):
     posts.create_comment(post_id, content, user_id)
     return redirect(f"/post/{post_id}")
 
-
 @app.route("/delete_comment/<int:comment_id>", methods=["POST"])
 def delete_comment(comment_id):
     check_csrf()
@@ -241,7 +231,6 @@ def delete_comment(comment_id):
         return redirect(f"/post/{post_id}")
     return redirect(f"/post/{post_id}")
 
-
 @app.route("/like/<int:post_id>", methods=["POST"])
 def like(post_id):
     check_csrf()
@@ -256,13 +245,11 @@ def like(post_id):
         return_to = f"/post/{post_id}"
     return redirect(return_to)
 
-
 # User Management
 
 @app.route("/new_user")
 def new_user():
     return render_template("new_user.html")
-
 
 @app.route("/send_user", methods=["POST"])
 def send_user():
@@ -270,21 +257,19 @@ def send_user():
     password1 = request.form["password1"]
     password2 = request.form["password2"]
     username = username.strip()
+
     if not username:
         flash("Username cannot be empty", "error")
         return redirect("/new_user")
-
     if not password1 or not password2:
         flash("Password cannot be empty", "error")
         return redirect("/new_user")
     if len(username) < 4 or len(username) > 16:
         flash("Username must be between 4 and 16 characters long", "error")
         return redirect("/new_user")
-    
     if len(password1) < 8 or len(password1) > 20:
         flash("Password must be between 8 and 20 characters long", "error")
         return redirect("/new_user")
-
     if password1 != password2:
         flash("Passwords do not match", "error")
         return redirect("/new_user")
@@ -297,11 +282,9 @@ def send_user():
     flash("User created successfully. Please log in.", "success")
     return redirect("/")
 
-
 @app.route("/login")
 def login():
     return render_template("login.html")
-
 
 @app.route("/send_login", methods=["POST"])
 def send_login():
@@ -319,9 +302,9 @@ def send_login():
         session["user_id"] = user[0]["id"]
         session["csrf_token"] = secrets.token_hex(16)
         return redirect("/")
+
     flash("Invalid username or password", "error")
     return redirect("/login")
-
 
 @app.route("/logout", methods=["POST"])
 def logout():
@@ -329,7 +312,6 @@ def logout():
     del session["username"]
     del session["user_id"]
     return redirect("/login")
-
 
 @app.route("/user/<username>")
 def profile(username):
@@ -342,7 +324,7 @@ def profile(username):
     total_posts = len(user_posts)
     total_likes = sum(posts.get_like_count(post["id"]) for post in user_posts)
     return render_template(
-        "user.html", 
+        "user.html",
         user=user[0], 
         posts=user_posts,
         total_posts=total_posts,
