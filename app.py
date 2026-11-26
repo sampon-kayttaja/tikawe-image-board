@@ -58,7 +58,7 @@ def index():
 
 @app.route("/new")
 def new():
-    return render_template("new.html")
+    return render_template("new.html", topics=TOPICS)
 
 
 @app.route("/send", methods=["POST"])
