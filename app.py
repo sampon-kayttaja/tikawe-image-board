@@ -68,7 +68,7 @@ def send():
     topic = request.form.get("topic", "").strip()
     content = content.strip()
     title = title.strip()
-    
+
     if not title:
         flash("Error: Title cannot be empty", "error")
         return redirect("/new")

@@ -1,6 +1,5 @@
 import db
 
-
 def get_posts(search_query, sort_by, topic=None):
     sort_orders = {
         "newest": "posts.created_at DESC, posts.id DESC",
@@ -28,9 +27,8 @@ def get_posts(search_query, sort_by, topic=None):
         params.append(topic)
     if conditions:
         sql += " WHERE " + " AND ".join(conditions)
-    sql += f" ORDER BY {sort_orders[sort_by]}"
+    sql += f" ORDER BY {sort_orders[sort_by]} LIMIT 100"
     return db.query(sql, params)
-
 
 def create_post(title, content, topic, username, image):
     db.execute(
@@ -41,12 +39,10 @@ def create_post(title, content, topic, username, image):
         [title, content, topic, username, image],
     )
 
-
 def get_post(post_id):
     return db.query(
         "SELECT id, title, content, topic, user_id, created_at FROM posts WHERE id = ?", [post_id]
     )
-
 
 def get_comments(post_id):
     return db.query(
@@ -58,27 +54,22 @@ def get_comments(post_id):
         [post_id],
     )
 
-
 def get_like_count(post_id):
     rows = db.query(
         "SELECT COUNT(*) as like_count FROM likes WHERE post_id = ?", [post_id]
     )
     return rows[0][0]
 
-
 def get_picture(post_id):
     return db.query("SELECT picture FROM posts WHERE id = ?", [post_id])
 
-
 def get_post_user_id(post_id):
     return db.query("SELECT user_id FROM posts WHERE id = ?", [post_id])
-
 
 def delete_post(post_id):
     db.execute("DELETE FROM posts WHERE id = ?", [post_id])
     db.execute("DELETE FROM comments WHERE post_id = ?", [post_id])
     db.execute("DELETE FROM likes WHERE post_id = ?", [post_id])
-
 
 def create_comment(post_id, content, user_id):
     db.execute(
@@ -86,30 +77,24 @@ def create_comment(post_id, content, user_id):
         [post_id, content, user_id],
     )
 
-
 def get_comment(comment_id):
     return db.query(
         "SELECT user_id, post_id FROM comments WHERE id = ?", [comment_id]
     )
 
-
 def delete_comment(comment_id):
     db.execute("DELETE FROM comments WHERE id = ?", [comment_id])
-
 
 def get_like(post_id, user_id):
     return db.query(
         "SELECT * FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id]
     )
 
-
 def add_like(post_id, user_id):
     db.execute("INSERT INTO likes (post_id, user_id) VALUES (?, ?)", [post_id, user_id])
 
-
 def remove_like(post_id, user_id):
     db.execute("DELETE FROM likes WHERE post_id = ? AND user_id = ?", [post_id, user_id])
-
 
 def update_post(post_id, title, content, topic):
     db.execute(

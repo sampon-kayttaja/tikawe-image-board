@@ -2,7 +2,6 @@ import sqlite3
 
 import db
 
-
 def create_user(username, password_hash):
     try:
         db.execute(
@@ -12,7 +11,6 @@ def create_user(username, password_hash):
     except sqlite3.IntegrityError:
         return False
     return True
-
 
 def get_user_by_username(username):
     return db.query(
